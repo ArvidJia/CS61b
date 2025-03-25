@@ -113,6 +113,22 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        if( !atLeastOneMoveExists(board) ) return false;
+
+        for (int col=0; col<board.size(); col++) {
+            int mergeBoarder = board.size();
+            for (int row=board.size()-2; row>=0; row--) {
+                int nextRow = whereToMove(col, row, mergeBoarder);
+                if (nextRow != row){
+                    boolean merged=board.move(col,nextRow, board.tile(col,row));
+                    if(merged) {
+                        mergeBoarder = nextRow;
+                        score += board.tile(col, nextRow).value();
+                    }
+                    changed = true;
+                }
+            }
+        }
 
         checkGameOver();
         if (changed) {
@@ -120,6 +136,26 @@ public class Model extends Observable {
         }
         return changed;
     }
+
+    public int whereToMove(int col,int row,int boarder){
+        Tile tile = board.tile(col, row);
+        if (tile == null){
+            return row;
+        }
+        //boolean allNull = true;
+        for(row+=1;row < boarder; row++){
+            if( board.tile(col,row)==null){
+                continue;
+            } else if( board.tile(col,row).value() != tile.value() ){
+                return row-1;
+            } else if( board.tile(col,row).value() == tile.value() ){
+                return row;
+            }
+        }
+        return row-1;
+    }
+
+
 
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
