@@ -107,10 +107,9 @@ public class Model extends Observable {
      *    and the trailing tile does not.
      * */
     public boolean tilt(Side side) {
+        System.out.println("tilt called");
         boolean changed;
         changed = false;
-
-
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
         if( !atLeastOneMoveExists(board) ) return false;
@@ -131,6 +130,7 @@ public class Model extends Observable {
                 }
             }
         }
+
         board.setViewingPerspective(Side.NORTH);
 
         checkGameOver();

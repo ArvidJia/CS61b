@@ -47,6 +47,18 @@ class GUISource implements InputSource {
             case "←" :
                 command = "Left";
                 break;
+            case "W":
+                command = "Up";
+                break;
+            case "S":
+                command = "Down";
+                break;
+            case "A":
+                command = "Left";
+                break;
+            case "D":
+                command = "Right";
+                break;
             default :
                 break;
         }
