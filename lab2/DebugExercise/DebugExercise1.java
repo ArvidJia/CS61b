@@ -6,9 +6,12 @@ package DebugExercise;
  */
 public class DebugExercise1 {
     public static int divideThenRound(int top, int bottom) {
+        int left = top % bottom;
         int quotient = top / bottom;
-        int result = Math.round(quotient);
-        return result;
+        if( 2*left >= bottom ){
+            return ++quotient;
+        }
+        return quotient;
     }
 
     public static void main(String[] args) {
