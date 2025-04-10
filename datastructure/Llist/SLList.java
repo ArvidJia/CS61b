@@ -1,10 +1,10 @@
-public class SLList {
+public class SLList<T> implements List61B<T> {
 
-    private class intNode{
-        int item;
-        intNode next;
+    private class Node{
+        T item;
+        Node next;
 
-        intNode(int i, intNode node){
+        Node(T i, Node node){
             item = i;
             next = node;
         }
@@ -16,18 +16,18 @@ public class SLList {
             return 1+next.size();
         }
 
-        void addLast(int i){
+        void addLast(T i){
             if(next == null){
-                next = new intNode(i,null);
+                next = new Node(i,null);
                 return;
             }
             next.addLast(i);
         }
 
-        int get(int i){
+        T get(int i){
             if(i > size()){
                 System.out.println("Error");
-                return -1;
+                return null;
             }else if(i == 0){
                 return item;
             }else{
@@ -35,35 +35,58 @@ public class SLList {
             }
         }
 
+        void removeLast(){
+            if(this.next.next == null) {
+                next = null;
+            }this.next.removeLast();
+        }
 
     }
 
 
-    private intNode first;
-    private int size;
+    private Node sentinal = new Node(null,null);
+    private int size=0;
 
-    public SLList(int x){
-        first = new intNode(x, null);
+    public SLList(T x){
+        sentinal.next = new Node(x, null);
+        size += 1;
     }
 
 
-    public void addFirst(int x){
-        first = new intNode(x, first);
+    public void addFirst(T x){
+        sentinal.next = new Node(x, sentinal.next);
+        size += 1;
     }
 
-    public void addLast(int x){
-        first.addLast(x);
+    @Override
+    public void addLast(T x){
+        sentinal.next.addLast(x);
+        size += 1;
     }
 
-   public int size(){
-        return first.size();
+    @Override
+    public T getLast(){
+        return get(size()-1);
+    }
+    @Override
+    public int size(){
+        return size;
+    }
+
+    @Override
+    public T removeLast(){
+        T last = this.getLast();
+        sentinal.next.removeLast();
+        size -= 1;
+        return last;
+    }
+
+
+    public T get(int i){
+        return sentinal.next.get(i);
    }
 
-   public int get(int i){
-        return first.get(i);
-   }
-
-   void printNode(intNode node){
+   void printNode(Node node){
         if(node.next == null ){
             System.out.println(node.item);
         }else{
@@ -73,21 +96,9 @@ public class SLList {
     }
 
    public void print(){
-        printNode( first );
+        System.out.println("slist own print.");
+        printNode(sentinal.next);
    }
-
-
-   public static void main(String[] args){
-        SLList list = new SLList(1);
-        list.addLast(2);
-        list.addFirst(0);
-
-        list.print();
-
-
-
-   }
-
 
 }
 

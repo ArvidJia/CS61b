@@ -1,65 +1,52 @@
-import org.junit.jupiter.api.test;
-public class Alist {
-    int capacity = 100;
-    int[] arr = new int[capacity];
-    int size = 0;
+public class Alist<T> implements List61B<T> {
+    private T[] items;
+    private int size = 0;
+    private int capacity= 100;
 
-    Alist(int x){
-        addLast(x);
+    public Alist() {
+        //creat a empty array
+        items = (T[]) new Object[capacity];
     }
 
-    public int getSize(){
-        return size;
-    }
-
-    public int getLast(){
-        return arr[size-1];
-    }
-
-    private void resize(int new_capacity){
-        int[] new_arr = new int[new_capacity];
-        arr = new_arr;
-    }
-
-    public void addLast(int x){
-        if(size == capacity){
-            resize(capacity*2);
-            capacity *= 2;
+    @Override
+    public void addLast(T item) {
+        if (size == capacity) {
+            this.resize(capacity*2);
         }
-        arr[size] = x;
-        size++;
+        items[size] = item;
+        size += 1;
     }
 
-    private void removeLast(){
-        if( size>0 ){
+    @Override
+    public T getLast(){
+        return items[size-1];
+    }
+
+    @Override
+    public int size() {
+        return this.size;
+    }
+
+    public T removeLast() {
+        if ( size < capacity/4 && size > 4) {
+           this.resize(capacity/4);
+        }
+
+        if(size > 0){
+            T last = items[size-1];
             size--;
-        } else{
-            System.out.println("Error");
-        }
-
-        if(size < capacity/2){
-            resize(capacity/2);
-            capacity /= 2;
+            return last;
+        }else{
+            System.out.println("Error! List is empty!");
+            return null;
         }
     }
 
-    @test
-    public void testAlsit() {
-        Alist a = new Alist(0);
-        for(int i=1; i < 200; i++){
-            a.addLast(i*i);
+    private void resize(int capacity){
+        T[] newItems = (T[]) new Object[capacity];
+        for (int i = 0; i < size; i++) {
+            newItems[i] = items[i];
         }
-
-        System.out.println(a.getSize());
-        System.out.println(a.getLast());
-        System.out.println(a.capacity);
-
-        for(int i=0; i < 101; i++){
-            a.removeLast();
-        }
-        System.out.println(a.getSize());
-        System.out.println(a.getLast());
-        System.out.println(a.capacity);
+        items = newItems;
     }
-
 }
