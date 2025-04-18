@@ -69,6 +69,19 @@ public class LinkedListDeque<T> {
     }
 
 
+    private T getRrcursivelyHelper(Node<T> node,int index){
+        if(index > 0){
+             getRrcursivelyHelper(node.next, index-1);
+        }
+        return node.item;
+    }
+
+    public void getRecursively(int i){
+        if(i >= size || i < 0){
+            System.out.println("Out of bounds");
+        }
+        getRrcursivelyHelper(frontSentinel.next, i);
+    }
 
 
 
