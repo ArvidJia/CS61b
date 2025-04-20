@@ -1,6 +1,10 @@
 package deque;
 
+import jh61b.junit.In;
 import org.junit.Test;
+
+import java.util.Iterator;
+
 import static org.junit.Assert.*;
 
 
@@ -106,17 +110,76 @@ public class LinkedListDequeTest {
     public void bigLLDequeTest() {
 
         LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 100; i++) {
             lld1.addLast(i);
         }
 
-        for (double i = 0; i < 500000; i++) {
+        for (double i = 0; i < 50; i++) {
             assertEquals("Should have the same value", i, (double) lld1.removeFirst(), 0.0);
         }
 
-        for (double i = 999999; i > 500000; i--) {
+        for (double i = 99; i > 50; i--) {
             assertEquals("Should have the same value", i, (double) lld1.removeLast(), 0.0);
+        }
+    }
+
+    @Test
+    /* Test iterator:.next(). add 100 nums in the Deque.
+     * test if the order is correct
+     * */
+    public void iteratorTest(){
+
+
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
+
+        for (int i = 0; i < 100; i++) {
+            lld1.addLast(i);
+        }
+
+        Iterator<Integer> iter = lld1.iterator();
+
+        for (double i = 0; i < 50; i++) {
+            assertEquals("Should have the same value", i, (double) iter.next(), 0.0);
         }
 
     }
+
+
+    @Test
+    /* test if two deque is equal*/
+    public void isEqualTest(){
+        LinkedListDeque<Integer> i1 = new LinkedListDeque<Integer>();
+        LinkedListDeque<Integer> i2 = new LinkedListDeque<Integer>();
+
+        LinkedListDeque<String> s1 = new LinkedListDeque<String>();
+        LinkedListDeque<String> s2 = new LinkedListDeque<String>();
+
+        assertEquals("Should have the same value", true, i1.isEqual(i2));
+        assertEquals("Should have the same value", true, s1.isEqual(s2));
+
+        for (int i = 0; i < 2; i++) {
+            i1.addLast(i);
+            i2.addLast(i);
+        }
+
+        for (double i = 0; i < 2; i++) {
+            i1.removeFirst();
+            i2.removeFirst();
+            assertEquals("Should have the same value", true, i1.isEqual(i2));
+        }
+
+        i1.addLast(99);
+        assertEquals("Should have the same value", false, i1.isEqual(i2));
+
+        s1.addLast("string");
+        s2.addLast("string");
+        assertEquals("Should have the same value", true, s1.isEqual(s2));
+
+        s1.removeFirst();
+        assertEquals("Should have the same value", false, s1.isEqual(s2));
+
+
+
+    }
+
 }

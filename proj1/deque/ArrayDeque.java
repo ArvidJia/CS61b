@@ -1,6 +1,8 @@
 package deque;
 
 
+import java.util.Iterator;
+
 public class ArrayDeque<T> {
 
     private int capacity = 8;
@@ -27,7 +29,7 @@ public class ArrayDeque<T> {
             this.resize(capacity*2);
         }
         items[nextback] = item;
-        nextback++;
+        nextback = nextback== capacity-1 ? 0 : nextback+1;
         size++;
     }
 
@@ -36,7 +38,7 @@ public class ArrayDeque<T> {
             this.resize(capacity*2);
         }
         items[nextfront] = item;
-        nextfront--;
+        nextfront = nextfront == 0 ? capacity-1 : nextfront-1;
         size++;
     }
 
@@ -44,20 +46,26 @@ public class ArrayDeque<T> {
         if(size < capacity/2){
             resize(capacity/2);
         }
-        T first = this.get(0);
-        nextfront = nextfront+1;
-        size--;
-        return first;
+        if(size >0){
+            T first = this.get(0);
+            nextfront = nextfront == capacity-1 ? 0 : nextfront+1;
+            size--;
+            return first;
+        }
+        return null;
     }
 
     public T removeLast() {
         if(size < capacity/2){
             resize(capacity/2);
         }
-        T last = this.get(size-1);
-        nextback = nextback-1;
-        size--;
-        return last;
+        if(size > 0){
+            T last = this.get(size-1);
+            nextback = nextback == 0 ? capacity-1 : nextback-1;
+            size--;
+            return last;
+        }
+        return null;
     }
 
     public T get(int index) {
@@ -91,22 +99,41 @@ public class ArrayDeque<T> {
         items = newItems;
     }
 
-    public static void main(String[] args) {
-        ArrayDeque<Integer> arr = new ArrayDeque<Integer>();
 
-        for(int i = 0; i < 100; i++){
-            arr.addLast(i);
-            if(arr.size() % 10 == 0){
-                arr.printDeque();
-            }
+
+    public Iterator<T> iterator() {
+        return new ArrayDeque<T>.iterator();
+    }
+
+    private class iterator implements Iterator<T> {
+        private int index;
+        public iterator() {
+            index = 0;
         }
-        for(int i = 0; i < 100; i++){
-            arr.removeFirst();
-            if(arr.size() % 10 == 0){
-                arr.printDeque();
-            }
+        @Override
+        public boolean hasNext() {
+            return index < size;
         }
 
+        @Override
+        public T next() {
+            T item = get(index);
+            index++;
+            return item;
+        }
+    }
 
+
+
+    public boolean isEqual(Object o) {
+        if(o instanceof ArrayDeque && ((ArrayDeque<?>) o).size == this.size){
+            for(int i = 0; i < size; i++){
+                if(this.get(i) != ((ArrayDeque<?>) o).get(i)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 }
