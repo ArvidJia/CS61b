@@ -1,6 +1,5 @@
 package deque;
 
-import jh61b.junit.In;
 import org.junit.Test;
 
 import java.util.Iterator;
@@ -154,8 +153,8 @@ public class LinkedListDequeTest {
         LinkedListDeque<String> s1 = new LinkedListDeque<String>();
         LinkedListDeque<String> s2 = new LinkedListDeque<String>();
 
-        assertEquals("Should have the same value", true, i1.isEqual(i2));
-        assertEquals("Should have the same value", true, s1.isEqual(s2));
+        assertEquals("Should have the same value", true, i1.equals(i2));
+        assertEquals("Should have the same value", true, s1.equals(s2));
 
         for (int i = 0; i < 2; i++) {
             i1.addLast(i);
@@ -165,18 +164,18 @@ public class LinkedListDequeTest {
         for (double i = 0; i < 2; i++) {
             i1.removeFirst();
             i2.removeFirst();
-            assertEquals("Should have the same value", true, i1.isEqual(i2));
+            assertEquals("Should have the same value", true, i1.equals(i2));
         }
 
         i1.addLast(99);
-        assertEquals("Should have the same value", false, i1.isEqual(i2));
+        assertEquals("Should have the same value", false, i1.equals(i2));
 
         s1.addLast("string");
         s2.addLast("string");
-        assertEquals("Should have the same value", true, s1.isEqual(s2));
+        assertEquals("Should have the same value", true, s1.equals(s2));
 
         s1.removeFirst();
-        assertEquals("Should have the same value", false, s1.isEqual(s2));
+        assertEquals("Should have the same value", false, s1.equals(s2));
 
 
 

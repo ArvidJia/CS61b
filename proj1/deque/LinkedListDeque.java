@@ -2,13 +2,11 @@ package deque;
 
 import java.util.Iterator;
 
-public class LinkedListDeque<T> {
+public class LinkedListDeque<T> implements Deque<T> {
     private class Node<T>{
         Node<T> prev;
         T item;
         Node<T> next;
-
-
 
         public Node(Node<T> _prev,T _item, Node<T> _next) {
             this.prev = _prev;
@@ -44,24 +42,24 @@ public class LinkedListDeque<T> {
         size = 1;
     }
 
+    @Override
     public int size(){
         return size;
     }
 
-    public boolean isEmpty(){
-        return size == 0;
-    }
-
+    @Override
     public void addFirst(T _item) {
         frontSentinel.next = new Node<T>(frontSentinel, _item, frontSentinel.next);
         ++size;
     }
 
+    @Override
     public void addLast(T _item) {
         backSentinel.prev = new Node<T>(backSentinel.prev, _item, backSentinel);
         size++;
     }
 
+    @Override
     public T get(int i){
         if(i < size/2 && i >= 0){
             Node<T> temp = frontSentinel.next;
@@ -81,29 +79,26 @@ public class LinkedListDeque<T> {
         }
     }
 
-
     /**
-     *
      * @param node the first effective node of Deque
      * @param index index of elem want to get
      * @return the elem at position index
      */
-    private T getRrcursivelyHelper(Node<T> node,int index){
+    private T getRrcursiveHelper(Node<T> node,int index){
         if(index > 0){
-             getRrcursivelyHelper(node.next, index-1);
+             getRrcursiveHelper(node.next, index-1);
         }
         return node.item;
     }
 
-    public void getRecursively(int i){
+    public void getRecursive(int i){
         if(i >= size || i < 0){
             System.out.println("Out of bounds");
         }
-        getRrcursivelyHelper(frontSentinel.next, i);
+        getRrcursiveHelper(frontSentinel.next, i);
     }
 
-
-
+    @Override
     public T removeFirst() {
         if(size != 0){
             T first = get(0);
@@ -116,6 +111,7 @@ public class LinkedListDeque<T> {
         return null;
     }
 
+    @Override
     public T removeLast() {
         if(size != 0){
             T last = get(size);
@@ -128,6 +124,7 @@ public class LinkedListDeque<T> {
         return null;
     }
 
+    @Override
     public void printDeque(){
         System.out.print("{ ");
         Node<T> temp = frontSentinel.next;
@@ -138,7 +135,11 @@ public class LinkedListDeque<T> {
         System.out.print("}");
     }
 
-    public boolean isEqual(Object o){
+    public boolean equals(Object obj) {
+        return this.isEqual(obj);
+    }
+
+    private boolean isEqual(Object o){
         if(o instanceof LinkedListDeque && ((LinkedListDeque<?>) o).size() == this.size()){
             Node<T> temp = frontSentinel.next;
             Node<T> otemp = (Node) ((LinkedListDeque<?>) o).frontSentinel.next;
@@ -153,8 +154,6 @@ public class LinkedListDeque<T> {
         }
         return false;
     }
-
-
 
     /**
      * create an iterator from beginning of the Deque.
@@ -185,14 +184,5 @@ public class LinkedListDeque<T> {
             }
             return null;
         }
-
     }
-
-   public static void main(String[] args) {
-        LinkedListDeque<Integer> a= new LinkedListDeque<Integer>();
-        a.addFirst(1);
-        a.printDeque();
-        a.removeFirst();
-        a.printDeque();
-   }
 }

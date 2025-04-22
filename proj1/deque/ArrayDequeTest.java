@@ -13,7 +13,7 @@ import static org.junit.Assert.assertEquals;
 public class ArrayDequeTest {
     @Test
     public void testRandomAddRemove() {
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
+        ArrayDeque<Integer> deque = new ArrayDeque<Integer>();
         int num=0;
         for (int i = 0; i < 500; i++) {
             int chose = StdRandom.uniform(0,5);
@@ -41,7 +41,7 @@ public class ArrayDequeTest {
 
     @Test
     public void testAddRemove() {
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
+        ArrayDeque<Integer> deque = new ArrayDeque<Integer>();
 
         for (int i = 0; i < 10; i++) {
             deque.addLast(i);
@@ -63,7 +63,7 @@ public class ArrayDequeTest {
 
     @Test
     public void testEmptySize() {
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
+        ArrayDeque<Integer> deque = new ArrayDeque<Integer>();
         assertEquals("Should be empty",deque.isEmpty(), true);
 
         deque.addFirst(1);
@@ -73,7 +73,7 @@ public class ArrayDequeTest {
 
     @Test
     public void testIter() {
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
+        ArrayDeque<Integer> deque = new ArrayDeque<Integer>();
         Iterator<Integer> iter = deque.iterator();
 
         for (int i = 0; i < 10; i++) {
@@ -96,8 +96,8 @@ public class ArrayDequeTest {
         ArrayDeque<String> s1 = new ArrayDeque<String>();
         ArrayDeque<String> s2 = new ArrayDeque<String>();
 
-        assertEquals("Should have the same value", true, i1.isEqual(i2));
-        assertEquals("Should have the same value", true, s1.isEqual(s2));
+        assertEquals("Should have the same value", true, i1.equals(i2));
+        assertEquals("Should have the same value", true, s1.equals(s2));
 
         for (int i = 0; i < 2; i++) {
             i1.addLast(i);
@@ -107,18 +107,18 @@ public class ArrayDequeTest {
         for (double i = 0; i < 2; i++) {
             i1.removeFirst();
             i2.removeFirst();
-            assertEquals("Should have the same value", true, i1.isEqual(i2));
+            assertEquals("Should have the same value", true, i1.equals(i2));
         }
 
         i1.addLast(99);
-        assertEquals("Should have the same value", false, i1.isEqual(i2));
+        assertEquals("Should have the same value", false, i1.equals(i2));
 
         s1.addLast("string");
         s2.addLast("string");
-        assertEquals("Should have the same value", true, s1.isEqual(s2));
+        assertEquals("Should have the same value", true, s1.equals(s2));
 
         s1.removeFirst();
-        assertEquals("Should have the same value", false, s1.isEqual(s2));
+        assertEquals("Should have the same value", false, s1.equals(s2));
     }
 
 

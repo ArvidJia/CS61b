@@ -3,7 +3,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> {
+public class ArrayDeque<T> implements Deque<T> {
 
     private int capacity = 8;
     private T[] items;
@@ -16,14 +16,12 @@ public class ArrayDeque<T> {
         this.items = (T[]) new Object[capacity];
     }
 
+    @Override
     public int size() {
         return size;
     }
 
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
+    @Override
     public void addLast(T item) {
         if (size == capacity) {
             this.resize(capacity*2);
@@ -33,6 +31,7 @@ public class ArrayDeque<T> {
         size++;
     }
 
+    @Override
     public void addFirst(T item) {
         if(size == capacity) {
             this.resize(capacity*2);
@@ -42,6 +41,7 @@ public class ArrayDeque<T> {
         size++;
     }
 
+    @Override
     public T removeFirst() {
         if(size < capacity/2){
             resize(capacity/2);
@@ -55,6 +55,7 @@ public class ArrayDeque<T> {
         return null;
     }
 
+    @Override
     public T removeLast() {
         if(size < capacity/2){
             resize(capacity/2);
@@ -68,6 +69,7 @@ public class ArrayDeque<T> {
         return null;
     }
 
+    @Override
     public T get(int index) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException();
@@ -124,8 +126,11 @@ public class ArrayDeque<T> {
     }
 
 
+    public boolean equals(Object o) {
+        return this.isEqual(o);
+    }
 
-    public boolean isEqual(Object o) {
+    private boolean isEqual(Object o) {
         if(o instanceof ArrayDeque && ((ArrayDeque<?>) o).size == this.size){
             for(int i = 0; i < size; i++){
                 if(this.get(i) != ((ArrayDeque<?>) o).get(i)){
