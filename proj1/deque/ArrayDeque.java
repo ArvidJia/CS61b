@@ -3,7 +3,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
     private int capacity = 8;
     private T[] items;
@@ -46,7 +46,7 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
         if (size < capacity / 2) {
             resize(capacity / 2);
         }
-        if (size > 0){
+        if (size > 0) {
             T first = this.get(0);
             nextfront = nextfront == capacity - 1 ? 0 : nextfront + 1;
             size--;
@@ -61,8 +61,8 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
             resize(capacity / 2);
         }
         if (size > 0) {
-            T last = this.get(size-1);
-            nextback = nextback == 0 ? capacity-1 : nextback-1;
+            T last = this.get(size - 1);
+            nextback = nextback == 0 ? capacity - 1 : nextback - 1;
             size--;
             return last;
         }
@@ -109,7 +109,7 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
 
     private class DequeIterator implements Iterator<T> {
         private int index;
-        public DequeIterator() {
+        DequeIterator() {
             index = 0;
         }
         @Override
@@ -131,9 +131,10 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
     }
 
     private boolean isEqual(Object o) {
-        if (o instanceof ArrayDeque && ((ArrayDeque<?>) o).size == this.size) {
+        if (o instanceof Deque && ((Deque<?>) o).size() == this.size) {
+            Deque<?> oDeque = (Deque<?>) o;
             for (int i = 0; i < size; i++) {
-                if (this.get(i) != ((ArrayDeque<?>) o).get(i)) {
+                if (this.get(i) != oDeque.get(i)) {
                     return false;
                 }
             }

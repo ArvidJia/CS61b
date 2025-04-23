@@ -125,8 +125,6 @@ public class LinkedListDequeTest {
      * test if the order is correct
      * */
     public void iteratorTest(){
-
-
         LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
 
         for (int i = 0; i < 100; i++) {
@@ -134,11 +132,13 @@ public class LinkedListDequeTest {
         }
 
         Iterator<Integer> iter = lld1.iterator();
+        assertEquals("Should have next", true, iter.hasNext());
 
-        for (double i = 0; i < 50; i++) {
+        for (double i = 0; i < 99; i++) {
             assertEquals("Should have the same value", i, (double) iter.next(), 0.0);
         }
 
+        assertEquals("Should not have next", false, iter.hasNext());
     }
 
 
@@ -187,6 +187,25 @@ public class LinkedListDequeTest {
         for (int i = 0; i < 10; i++) {
             assertEquals(i, (int) d1.getRecursive(i));
         }
+    }
 
+    @Test
+    public void alDequeEqualTest(){
+        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
+        LinkedListDeque<Integer> l1 = new LinkedListDeque<Integer>();
+        int[] arr1 = {0,1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+        assertEquals(true, a1.equals(l1));
+        assertEquals(true, l1.equals(a1));
+        assertEquals(false, a1.equals(arr1));
+
+        for (int i = 0; i < 10; i++) {
+            a1.addLast(i);
+            l1.addLast(i);
+        }
+
+        assertEquals(true, a1.equals(l1));
+        assertEquals(true, l1.equals(a1));
+        assertEquals(false, a1.equals(arr1));
     }
 }
