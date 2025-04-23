@@ -126,6 +126,9 @@ public class LinkedListDequeTest {
      * */
     public void iteratorTest(){
         LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
+        Iterator<Integer> it = lld1.iterator();
+
+        assertFalse(it.hasNext());
 
         for (int i = 0; i < 100; i++) {
             lld1.addLast(i);
@@ -134,7 +137,7 @@ public class LinkedListDequeTest {
         Iterator<Integer> iter = lld1.iterator();
         assertEquals("Should have next", true, iter.hasNext());
 
-        for (double i = 0; i < 99; i++) {
+        for (double i = 0; i < 100; i++) {
             assertEquals("Should have the same value", i, (double) iter.next(), 0.0);
         }
 

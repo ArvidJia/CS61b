@@ -138,7 +138,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         if (o instanceof Deque && ((Deque<?>) o).size() == this.size()) {
             Deque<?> oDeque = (Deque<?>) o;
             for (int i = 0; i < this.size(); i++) {
-                if (oDeque.get(i) != this.get(i)) {
+                if (oDeque.get(i).equals(this.get(i))) {
                     return false;
                 }
             }
@@ -152,19 +152,19 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      * @return iterator pointing the first elem of Deque
      */
     public Iterator<T> iterator() {
-        return new DequeIterator<T>(frontSentinel.next);
+        return new DequeIterator();
     }
 
-    private class DequeIterator<T> implements java.util.Iterator<T> {
+    private class DequeIterator implements java.util.Iterator<T> {
         LinkedListDeque<T>.Node<T> current;
 
-       DequeIterator(LinkedListDeque<T>.Node<T> current) {
-            this.current = current;
+       DequeIterator() {
+           current = frontSentinel.next;
         }
 
         @Override
         public boolean hasNext() {
-            return current.next != backSentinel;
+            return current != backSentinel;
         }
 
         @Override
