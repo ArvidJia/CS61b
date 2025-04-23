@@ -58,14 +58,14 @@ public class GuitarPlayer {
         return sum;
     }
 
-    public void play() {
+    public void play(double bpm) {
         if (sequence == null) {
             return;
         }
 
         System.out.println("starting performance...");
         initialize();
-        double bpm = 120;
+        //double bpm = 120;
         double samplesPerTick = StdAudio.SAMPLE_RATE * (60.0 / (sequence.getResolution() * bpm));
 
         Track[] tracks = sequence.getTracks();
