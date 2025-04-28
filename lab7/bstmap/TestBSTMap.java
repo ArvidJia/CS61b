@@ -87,4 +87,20 @@ public class TestBSTMap {
         assertTrue(b.containsKey("hi"));
     }
 
+    @Test
+    public void removeTest() {
+        BSTMap<Double,String> t = new BSTMap<Double,String>();
+        t.put(10.0, "hi");
+        t.put(1.0, "mother");
+        t.put(2.0, "fucker");
+        t.put(2.5, "shit");
+        t.put(5.0, "bullshit");
+
+        assertTrue(t.containsKey(2.0));
+        t.remove(2.0,"fucker");
+        assertFalse(t.containsKey(2.0));
+
+    }
+
+
 }
