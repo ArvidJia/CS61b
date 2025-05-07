@@ -3,7 +3,7 @@ package bstmap;
 import java.util.Iterator;
 import java.util.Set;
 
-public class BSTMap<K extends Comparable,V> implements Map61B<K,V> {
+public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
     private class BSTNode {
         K key;
         V val;
@@ -27,6 +27,10 @@ public class BSTMap<K extends Comparable,V> implements Map61B<K,V> {
         }
 
 
+        /**
+         * get the largest node
+         * @return largest node of BST
+         */
         BSTNode largest() {
             if (right == null) {
                 return this;
@@ -35,6 +39,10 @@ public class BSTMap<K extends Comparable,V> implements Map61B<K,V> {
             }
         }
 
+        /**
+         * get the smallest node
+         * @return smallest node of BST
+         */
         BSTNode smallest() {
             if (left == null) {
                 return this;
@@ -42,24 +50,6 @@ public class BSTMap<K extends Comparable,V> implements Map61B<K,V> {
                 return left.smallest();
             }
         }
-
-
-//        BSTNode remove(BSTNode node){
-//            int child = node.numOfChild();
-//            BSTNode delete = node;
-//            if (child == 0) {
-//                node = null;
-//                return delete;
-//            } else if (child == 1) {
-//                node = node.left == null ? node.right : node.left;
-//                return delete;
-//            } else {
-//                BSTNode successer = remove(node.largest());
-//                node = successer;
-//                return delete;
-//            }
-//        }
-
     }
 
     private BSTNode root;
@@ -108,6 +98,12 @@ public class BSTMap<K extends Comparable,V> implements Map61B<K,V> {
         return null;
     }
 
+    /**
+     * find parent node of node passed in
+     * @param node node you want to findParent
+     * @param key  key of the node
+     * @return parent node of @param node
+     */
     private BSTNode findParent(BSTNode node, K key) {
         if (node == null) {
             return null;
@@ -160,52 +156,44 @@ public class BSTMap<K extends Comparable,V> implements Map61B<K,V> {
     @Override
     public V remove(K key, V value) {
         BSTNode parent = findParent(root, key);
-        if (parent == null) {
-            if (root.key.compareTo(key) == 0) {
-                BSTNode successor = root.left.largest();
-                K skey = successor.key;
-                V sval = successor.val;
-                remove(skey, sval);
-                root.key = skey;
-                root.val = sval;
-                return sval;
-            }
+        if (parent == null && key.compareTo(root.key) != 0) {
             return null;
         }
 
-        BSTNode node = find(parent, key);
+        BSTNode node = key.compareTo(root.key) == 0 ? root : find(parent, key);
         V val = node.val;
         int child = node.numOfChild();
-        if (node == parent.left) {
-            BSTNode successor = successor(node);
-            if (successor == null) {
-                parent.left = null;
-            } else if (successor == node.right || successor == node.left) {
-                parent.left = successor;
-            } else {
-                K skey = successor.key;
-                V sval = successor.val;
-                remove(skey, sval);
-                node.key = skey;
-                node.val = sval;
-            }
-        } else {
-            BSTNode successor = successor(node);
-            if (successor == null) {
-                parent.right = null;
-            } else if (successor == node.right || successor == node.left) {
-                parent.right = successor;
-            } else {
-                K skey = successor.key;
-                V sval = successor.val;
-                remove(skey, sval);
-                node.key = skey;
-                node.val = sval;
-            }
+        BSTNode successor = successor(node);
+
+        /*
+         * if the childNum == 2: change origin key:val -> successor.key/val.
+           then delete the successor
+         * else childNum == 1/0: change the node to be successor
+           (as the form of parent.left/right)
+         * if root & child != 2: change root to be successor
+        */
+        if (child == 2) {
+            K skey = successor.key;
+            V sval = successor.val;
+            remove(skey, sval);
+            node.key = skey;
+            node.val = sval;
+        } else if (node == root) {
+           root = successor;
+        } else if (node == parent.left) {
+            parent.left = successor;
+        } else if (node == parent.right) {
+            parent.right = successor;
         }
         return val;
     }
 
+    /**
+     * find a successor for the node pass in.
+     * depends on how many child it has.
+     * @param node the node you want to delete
+     * @return the successor when you delete the node
+     */
     private BSTNode successor(BSTNode node) {
         int n = node.numOfChild();
         if (n == 0) {
@@ -218,7 +206,39 @@ public class BSTMap<K extends Comparable,V> implements Map61B<K,V> {
         }
     }
 
+    public V beautifulRemove(K key, V val) {
+        root = remove(root, key); // root deleted here;
+        return val;
+    }
 
+    private BSTNode remove (BSTNode node, K key) {
+        // Base case: return successor || return null when not found
+        if (node == null) {
+            return null;
+        }
+
+        int cmp = key.compareTo(node.key);
+        if (cmp > 0) {
+            node.right = remove(node.right, key); // Child 0/1 deleted here
+        } else if (cmp < 0) {
+            node.left = remove(node.left, key);
+        } else {
+            // return successor when child = 0/1;
+            if (node.left == null) {
+                return node.right;
+            } else if (node.right == null){
+                return node.left;
+            } else { // 2 Child: delete node and return deleted one
+                BSTNode successor = node.left.largest();
+                node.key = successor.key;
+                node.val = successor.val;
+                remove(successor, node.key);
+            }
+        }
+
+        // Base case: just return the Tree after deleting
+        return node;
+    }
 
 
 

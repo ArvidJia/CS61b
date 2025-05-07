@@ -94,11 +94,11 @@ public class TestBSTMap {
         t.put(1.0, "mother");
         t.put(2.0, "fucker");
         t.put(2.5, "shit");
-        t.put(5.0, "bullshit");
+        t.put(1.9,"SOME");
 
-        assertTrue(t.containsKey(2.0));
-        t.remove(2.0,"fucker");
-        assertFalse(t.containsKey(2.0));
+        assertTrue("expected ture", t.containsKey(10.0));
+        t.beautifulRemove(10.0,"hi");
+        assertFalse("expected false", t.containsKey(10.0));
 
     }
 
