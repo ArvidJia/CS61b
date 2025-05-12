@@ -97,7 +97,7 @@ public class TestBSTMap {
         t.put(1.9,"SOME");
 
         assertTrue("expected ture", t.containsKey(10.0));
-        t.beautifulRemove(10.0,"hi");
+        t.remove(10.0,"hi");
         assertFalse("", t.containsKey( 10.0));
 
     }

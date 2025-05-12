@@ -1,0 +1,37 @@
+@Author: Arvid Jia
+@Data: May.12.2025
+@Note: "\" stands for can't add so much element because Stack Overflow
+      Time unit is sec.
+
+#Random stringLength   #strings  ULLMap BSTMap TreeMap HashMap
+1         100          1000000   \      2.49   2.10    1.50
+2         100          100000    \      .17    .17     .14
+3         100          50000     \      .08    .09     .07
+4         100          10000     .39    .01    .01     .01
+5         100          5000      .10    .01    .01     .01
+6         10           1000000   \      1.04   1.14    .37
+7         10           100000    \      .08    .05     .02
+8         10           50000     \      .02    .02     .02
+9         10           10000     .22    .00    .00     .00
+10        10           5000      .07    .00    .00     .00
+
+#Order    #strings     ULLMap BSTMap TreeMap HashMap
+1         100000       \       \      .70     .75
+2         50000        \       \      .04     .03
+3         10000        .32     .49    .01     .00
+4         5000         .06     .10    .00     .00
+5         1000         .00     .00    .00     .00
+
+RandomTest result: HashMap performs best.
+                   BSTMap & Treemap second.
+                   ULLMap worst and broke when #strings are big.
+
+OrderTest result:  ULLMap & BSTMap broke when #strings are big.
+                   ULLMap has the best performance when #strings are small.
+                   BSTMap performs the worst under that condition.
+
+Why Stack Overflow: Too much layers of recursion when inserting.
+                    BSTMap keeps balance when adding randomly.
+                        But it's liner when adding in order.
+                        Which caused it's broke.
+                    (ULLMap broke in two tests because it's always liner)

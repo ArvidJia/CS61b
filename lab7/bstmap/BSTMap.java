@@ -66,7 +66,7 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
 
     @Override
     public boolean containsKey(K key) {
-        return find(root, key) != null;
+        return get(key) != null;
     }
 
     private BSTNode find(BSTNode node, K key) {
