@@ -15,18 +15,6 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
             left = right = null;
         }
 
-        int numOfChild(){
-            int child = 2;
-            if (left == null) {
-                child--;
-            }
-            if (right == null) {
-                child--;
-            }
-            return child;
-        }
-
-
         /**
          * get the largest node
          * @return largest node of BST
@@ -61,11 +49,7 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
 
    @Override
     public void put(K key, V val) {
-        if (root == null) {
-            root = new BSTNode(key, val);
-            size += 1;
-        }
-        insert(root, key, val);
+        root = insert(root, key, val);
     }
 
     private BSTNode insert(BSTNode node, K key,V val) {
@@ -98,26 +82,6 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
         return null;
     }
 
-    /**
-     * find parent node of node passed in
-     * @param node node you want to findParent
-     * @param key  key of the node
-     * @return parent node of @param node
-     */
-    private BSTNode findParent(BSTNode node, K key) {
-        if (node == null) {
-            return null;
-        } else if (node.left != null && node.left.key.compareTo(key) == 0) {
-            return node;
-        } else if (node.right != null && node.right.key.compareTo(key) == 0) {
-            return node;
-        } else if (node.key.compareTo(key) < 0) {
-            node = findParent(node.right, key);
-        } else if (node.key.compareTo(key) > 0) {
-            node = findParent(node.left, key);
-        }
-        return node;
-    }
 
     @Override
     public void clear() {
@@ -153,60 +117,8 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
         return val;
     }
 
-    @Override
-    public V remove(K key, V value) {
-        BSTNode parent = findParent(root, key);
-        if (parent == null && key.compareTo(root.key) != 0) {
-            return null;
-        }
-
-        BSTNode node = key.compareTo(root.key) == 0 ? root : find(parent, key);
-        V val = node.val;
-        int child = node.numOfChild();
-        BSTNode successor = successor(node);
-
-        /*
-         * if the childNum == 2: change origin key:val -> successor.key/val.
-           then delete the successor
-         * else childNum == 1/0: change the node to be successor
-           (as the form of parent.left/right)
-         * if root & child != 2: change root to be successor
-        */
-        if (child == 2) {
-            K skey = successor.key;
-            V sval = successor.val;
-            remove(skey, sval);
-            node.key = skey;
-            node.val = sval;
-        } else if (node == root) {
-           root = successor;
-        } else if (node == parent.left) {
-            parent.left = successor;
-        } else if (node == parent.right) {
-            parent.right = successor;
-        }
-        return val;
-    }
-
-    /**
-     * find a successor for the node pass in.
-     * depends on how many child it has.
-     * @param node the node you want to delete
-     * @return the successor when you delete the node
-     */
-    private BSTNode successor(BSTNode node) {
-        int n = node.numOfChild();
-        if (n == 0) {
-            return null;
-        } else if (n == 1) {
-            return node.left == null ? node.right : node.left;
-        }
-        else { //n == 2
-            return node.left.largest();
-        }
-    }
-
-    public V beautifulRemove(K key, V val) {
+   @Override
+    public V remove(K key, V val) {
         root = remove(root, key); // root deleted here;
         return val;
     }
@@ -241,9 +153,9 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
     }
 
 
-
     @Override
     public Iterator<K> iterator() {
         throw new UnsupportedOperationException();
     }
+
 }
