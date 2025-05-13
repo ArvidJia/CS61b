@@ -67,7 +67,7 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
 
     @Override
     public boolean containsKey(K key) {
-        return get(key) != null;
+        return find(root, key) != null;
     }
 
     private BSTNode find(BSTNode node, K key) {
@@ -128,22 +128,19 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
 
     @Override
     public V remove(K key) {
-        BSTNode node = find(root, key);
-        if (node == null) { //No such item
-            return null;
-        }
-        V val = node.val;
-        node.val = null;
-        return val;
+        BSTNode wrapper = new BSTNode(key,null);
+        root = remove(root, key ,wrapper);
+        return wrapper.val;
     }
 
    @Override
     public V remove(K key, V val) {
-        root = remove(root, key); // root deleted here;
-        return val;
+        BSTNode wrapper = new BSTNode(key, val);
+        root = remove(root, key, wrapper); // root deleted here;
+        return wrapper.val;
     }
 
-    private BSTNode remove (BSTNode node, K key) {
+    private BSTNode remove (BSTNode node, K key, BSTNode wrapper) {
         // Base case: return successor || return null when not found
         if (node == null) {
             return null;
@@ -151,10 +148,19 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
 
         int cmp = key.compareTo(node.key);
         if (cmp > 0) {
-            node.right = remove(node.right, key); // Child 0/1 deleted here
+            node.right = remove(node.right, key, wrapper); // Child 0/1 deleted here
         } else if (cmp < 0) {
-            node.left = remove(node.left, key);
+            node.left = remove(node.left, key, wrapper);
         } else {
+            //  if wrapper.val != node.val: unsatisfied condition of remove(K, V)
+            if (wrapper.val != null && wrapper.val != node.val ) {
+                wrapper.val = null;
+                return node;
+            } else {
+                wrapper.val = node.val;
+                size--;
+            }
+
             // return successor when child = 0/1;
             if (node.left == null) {
                 return node.right;
@@ -164,9 +170,8 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
                 BSTNode successor = node.left.largest();
                 node.key = successor.key;
                 node.val = successor.val;
-                remove(successor, node.key);
+                remove(successor, node.key, wrapper);
             }
-            size--;
         }
 
         // Base case: just return the Tree after deleting
