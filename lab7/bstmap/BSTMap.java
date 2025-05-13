@@ -1,5 +1,6 @@
 package bstmap;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -103,8 +104,27 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
 
     @Override
     public Set<K> keySet() {
-        throw new UnsupportedOperationException();
+        Set<K> keys = new HashSet<>();
+        keySet(root, keys);
+        return keys;
     }
+
+    private void keySet(BSTNode node, Set<K> keys) {
+        if (node.left != null) {
+            keySet(node.left, keys);
+        }
+
+        if (node != null) {
+            keys.add(node.key);
+        }
+
+        if (node.right != null) {
+            keySet(node.right, keys);
+        }
+        return;
+    }
+
+
 
     @Override
     public V remove(K key) {
@@ -146,6 +166,7 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
                 node.val = successor.val;
                 remove(successor, node.key);
             }
+            size--;
         }
 
         // Base case: just return the Tree after deleting
@@ -153,9 +174,67 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
     }
 
 
-    @Override
-    public Iterator<K> iterator() {
-        throw new UnsupportedOperationException();
+    public void printInOrder() {
+        printInOrder(root);
     }
 
+
+    private void printInOrder(BSTNode node) {
+        if (node.left != null) {
+            printInOrder(node.left);
+        }
+
+        if (node != null) {
+            System.out.print(node.key + " ");
+        }
+
+        if (node.right != null) {
+            printInOrder(node.right);
+        }
+
+        return;
+    }
+
+    @Override
+    public Iterator<K> iterator() {
+        Iterator<K> iter = new BSTIterator();
+        return iter;
+    }
+
+    private class BSTIterator implements Iterator<K> {
+        K[] keys;
+        int index = 0;
+
+        public BSTIterator() {
+            keys = (K[]) new Comparable[size];
+            fillArr(root);
+            index = 0;
+        }
+
+        private void fillArr(BSTNode node) {
+            if (node.left != null) {
+                fillArr(node.left);
+            }
+
+            if (node != null) {
+                keys[index] = node.key;
+                index++;
+            }
+
+            if (node.right != null) {
+                fillArr(node.right);
+            }
+            return;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index <= size-1;
+        }
+
+        @Override
+        public K next() {
+            return keys[index++];
+        }
+    }
 }
