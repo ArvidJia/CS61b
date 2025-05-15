@@ -40,10 +40,10 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     /* Instance Variables */
     private Collection<Node>[] buckets;
     // You should probably define some more!
-    int N = 0; // # items
-    int M = 16; // # buckets
-    double loadFactor = 0.75;
-    double minFactor = 0.25;
+    private int N = 0; // # items
+    private int M = 16; // # buckets
+    private double loadFactor = 0.75;
+    private double minFactor = 0.25;
 
     /** Constructors */
     public MyHashMap() {
