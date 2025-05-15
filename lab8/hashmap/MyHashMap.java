@@ -26,12 +26,14 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
 
         @Override
         public boolean equals(Object o) {
-            return o.hashCode() == key.hashCode();
+            return o.hashCode() == this.hashCode();
+            // rewrite this method so that Collection.remove can work well
         }
 
         @Override
         public int hashCode() {
-            return key.hashCode();
+            return key.hashCode() ^ (value == null ? value.hashCode() : 0);
+            // use ^ to keep both information of key&value
         }
     }
 

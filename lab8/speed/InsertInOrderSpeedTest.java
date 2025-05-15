@@ -12,7 +12,8 @@ import hashmap.MyHashMap;
 /**
  * Performs a timing test on three different set implementations.
  * For hashmap.MyHashMap purposes assumes that <K,V> are <String, Integer> pairs.
- * @author Josh Hug 
+ * @author Josh Hug
+ *
  * @author Brendan Hu
  */
 public class InsertInOrderSpeedTest {
