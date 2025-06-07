@@ -1,6 +1,9 @@
 package gitlet;
 
-import gitlet.Repository.*;
+import java.io.File;
+
+import static gitlet.Repository.*;
+import static gitlet.Utils.join;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author Arvid Jia
@@ -29,9 +32,22 @@ public class Main {
                     System.out.println("Please enter two arguments");
                     System.exit(0);
                 }
-                repo.add(args[1]);
+                String fileName = args[1];
+                File file = join(CWD, fileName);
+                if (file.exists() && file.isFile()) {
+                    repo.add(fileName);
+                } else {
+                    System.out.println("File not found");
+                    System.exit(0);
+                }
+                break;
+            case "commit":
+                break;
+            case "log":
                 break;
             // TODO: FILL THE REST IN
         }
     }
 }
+
+

@@ -1,17 +1,10 @@
 package gitlet;
 
-// TODO: any imports you need here
-
-import java.io.File;
 import java.io.Serializable;
-import java.util.Date; // TODO: You'll likely use this in this class
-import java.util.Iterator;
+import java.util.Date;
+import java.util.Formatter;
 import java.util.Map;
-import static gitlet.Repository.*;
-import static gitlet.Staged.*;
 import static gitlet.Utils.*;
-import static gitlet.Utils.join;
-import static gitlet.Utils.readObject;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -28,84 +21,60 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    private class Node {
-        /** The message of this Commit. */
-        private String message;
-        /** The timestamp for this Commit. */
-        private long timestamp;
-        /** The parent of this Commit */
-        private Commit parent;
-        /** The file structure and its reference to blob */
-        private Map<String, String> files;
-        private String Hash;
+    /** The message of this Commit. */
+    private String message;
+    /** The timestamp for this Commit. */
+    private long timestamp;
+    /** The parent of this Commit */
+    private Commit parent;
+    /** The file structure and its reference to blob */
+    private Map<String, String> files;
+    private String commitHash;
 
-        public Node(String message, Commit parent, Map<String, String> files) {
-            this.message = message == null ? "" : message;
-            this.parent = parent;
-            this.files = files;
-            Hash = sha1(this);
-            timestamp = new Date().getTime();
-        }
+    public Commit() {};
 
-        public Map<String,String> getMap() {
-            return files;
-        }
-
-        public boolean fileExists(String file) {
-            return files.containsKey(file);
-        }
-
-        public boolean fileExists(String file, String hashKey) {
-            return files.containsKey(file) && files.get(file).equals(hashKey);
+    public Commit(String message, Commit parent) {
+        this.message = message == null ? "" : message;
+        this.parent = parent;
+        timestamp = new Date().getTime();
+        /**
+         * TODO: write a function to add stageFile to Commit
+         */
+        if (parent != null) {
+            files = parent.files;
         }
     }
 
 
-    /** The COMMITS FILE */
-    public static final File COMMITS = join(GITLET_DIR, "commits");
-    private Node root;
-    private Node Master;
-    private Node Head;
-    /** The Master pointer */
-
-
-    public Commit() {
-        root = new Node("Init", null, null);
-        Head = Master = root;
+    public String getMessage() {
+        return message;
     }
 
-    public void newCommit(String message) {
-        if (!STAGED.exists()) {
-            System.out.println("Staging Area Not Exist ");
-            System.exit(1);
+    public String getHash() {
+        if (commitHash == null) {
+            commitHash = sha1(this);
         }
-        Staged staged = readObject(STAGED, Staged.class);
-        Map<String, String> addStage = staged.getAddStage();
-        Map<String, String> removeStage = staged.getRemoveStage();
-        Node newCommit = new Node(message, this, this.Head.files);
+        return commitHash;
+    }
 
-        Iterator<String> addition = addStage.keySet().iterator();
-        while(addition.hasNext()) {
-            String key = addition.next();
-            newCommit.files.put(key, addStage.get(key));
-        }
+    public String getFileHash(String fileName) {
+        return files == null ? null : files.get(fileName);
+    }
 
-        Iterator<String> removal = removeStage.keySet().iterator();
-        while(removal.hasNext()) {
-            newCommit.files.remove(removal.next());
-        }
-
-        Master = newCommit;
-        Head = newCommit;
+    public void put(String fileName, String hash) {
+        files.put(fileName, hash);
     }
 
 
-    public Map<String,String> Head() {
-        return Head.getMap();
-    }
-
-    public boolean fileInHead(String file, String hashKey) {
-        return Head.fileExists(file, hashKey);
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        Date date = new Date(timestamp);
+        Formatter formatter = new Formatter();
+        formatter.format("Date: %1$ta %1$tb %1$td %1$tT %1$tY %1$tz",date);
+        sb.append("===\ncommit " + commitHash + "\n");
+        sb.append("Data: " +formatter.toString() + "\n");
+        sb.append("message: " + message + "\n");
+        return sb.toString();
     }
 }
 
