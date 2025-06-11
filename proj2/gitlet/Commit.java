@@ -3,6 +3,7 @@ package gitlet;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.Map;
 import static gitlet.Utils.*;
 
@@ -37,6 +38,7 @@ public class Commit implements Serializable {
         this.message = message == null ? "" : message;
         this.parent = parent;
         timestamp = new Date().getTime();
+        files = new HashMap<>();
         /**
          * TODO: write a function to add stageFile to Commit
          */
@@ -57,10 +59,18 @@ public class Commit implements Serializable {
         return commitHash;
     }
 
-    public String getFileHash(String fileName) {
-        return files == null ? null : files.get(fileName);
+    /**
+     * @param fileName the file you want to get hashCode
+     * @return the hashCode of the input file
+     */
+    public String find(String fileName) {
+        return parent == null ? null : files.get(fileName);
     }
 
+    /**
+     * @param fileName the file to put into blob
+     * @param hash hashCode of the file
+     */
     public void put(String fileName, String hash) {
         files.put(fileName, hash);
     }
@@ -76,6 +86,29 @@ public class Commit implements Serializable {
         sb.append("message: " + message + "\n");
         return sb.toString();
     }
+
+    public boolean isInit() {
+        return parent == null;
+    }
+
+    public Commit parent() {
+        return parent;
+    }
+
+    public void printInOrder() {
+        if (this.isInit()) {
+            return;
+        } else {
+            parent.printInOrder();
+            System.out.println(this);
+            System.out.println("---");
+            System.out.println();
+        }
+    }
+
+
+
+
 }
 
 

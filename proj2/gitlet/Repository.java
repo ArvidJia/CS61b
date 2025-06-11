@@ -5,7 +5,6 @@ import static gitlet.Utils.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import static gitlet.Blobs.*;
@@ -62,29 +61,35 @@ public class Repository {
     }
 
     public void add(String fileName) {
-       File file = join(CWD, fileName);
+        File file = join(CWD, fileName);
 
-       blobs = readObject(BLOBS, Blobs.class);
-       head = readObject(HEAD, Commit.class);
-       stagedFile = readObject(STAGED, HashMap.class);
+        blobs = readObject(BLOBS, Blobs.class);
+        head = readObject(HEAD, Commit.class);
+        stagedFile = readObject(STAGED, HashMap.class);
 
-       String fileHash = head.getFileHash(fileName);
-       // blobs.add(file) == null when the file already exist in blobs
-       if (fileHash != null && blobs.add(file) == null) {
-          System.out.println("File " + fileName + " isn't changed.");
-          System.exit(0);
-       } else {
-           stagedFile.put(fileHash, fileName);
-           writeObject(BLOBS, blobs);
-           writeObject(STAGED, (Serializable) stagedFile);
-       }
+        String oldFileHash = head.find(fileName);
+        String newFileHash = blobs.add(file);
+
+        if (oldFileHash == null && newFileHash == null) {
+            System.out.println("This file " + fileName + "is not changed");
+            System.exit(0);
+        }
+        writeObject(BLOBS, blobs);
+
+        stagedFile.put(fileName, newFileHash);
+        writeObject(STAGED, stagedFile);
     }
 
 
     public void commit(String message) {
+        stagedFile = readObject(STAGED, HashMap.class);
+        if (stagedFile.isEmpty()){
+            System.out.println("Nothing to commit");
+            System.exit(0);
+        }
+
         head = readObject(HEAD, Commit.class);
         Commit newCommit = new gitlet.Commit(message, head);
-        stagedFile = readObject(STAGED, HashMap.class);
         for (Map.Entry<String, String> entry : stagedFile.entrySet()) {
             String key = entry.getKey();
             String val = entry.getValue();
@@ -95,15 +100,18 @@ public class Repository {
     }
 
     public void log() {
-
+        head = readObject(HEAD, Commit.class);
+        head.printInOrder();
     }
 
+    public void checkOut(String fileName) {
+        head = readObject(HEAD, Commit.class);
+        String hash = head.find(fileName);
+        blobs = readObject(BLOBS, Blobs.class);
+        String contents = blobs.get(hash);
 
-
-
-
-
-
-
-
+        File file = join(CWD, fileName);
+        String contents2 = readContentsAsString(file);
+        writeContents(file, contents);
+    }
 }

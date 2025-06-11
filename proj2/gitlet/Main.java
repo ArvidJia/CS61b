@@ -42,9 +42,32 @@ public class Main {
                 }
                 break;
             case "commit":
+                if (args.length != 2){
+                    System.out.println("Please enter two arguments");
+                    System.exit(0);
+                }
+                String message = args[1];
+                if (message.equals("")) {
+                    System.out.println("Please enter a commit message");
+                    System.exit(0);
+                } else {
+                    repo.commit(message);
+                }
+                break;
+            case "checkout":
+                switch (args.length){
+                    case 3:
+                        if(args[1].equals("--")){
+                            String checkFile = args[2];
+                            repo.checkOut(checkFile);
+                        }
+                        break;
+                }
                 break;
             case "log":
+                repo.log();
                 break;
+
             // TODO: FILL THE REST IN
         }
     }

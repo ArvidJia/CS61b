@@ -9,21 +9,21 @@ import static gitlet.Repository.*;
 /** Stores the file content and its SHA-1 */
 public class Blobs implements Serializable {
     // Map<HashCode, FileContent>
-    private Map<String, byte[]> blobs;
+    private Map<String, String> blobs;
     public static File BLOBS = join(GITLET_DIR, "blobs");
 
 
     public Blobs() {
-        blobs = new java.util.HashMap<String, byte[]>();
+        blobs = new java.util.HashMap<String, String>();
     }
 
     public String add(File file) {
-        byte[] contents = readContents(file);
+        String contents = readContentsAsString(file);
         String hashKey = Utils.sha1(contents);
         if (blobs.containsKey(hashKey)) {
             hashKey = null;
         } else {
-            byte[] filerContents = Utils.readContents(file);
+            String filerContents = Utils.readContentsAsString(file);
             blobs.put(hashKey, filerContents);
         }
         return hashKey;
@@ -31,7 +31,7 @@ public class Blobs implements Serializable {
 
 
 
-    public byte[] get(String hash_key) {
+    public String get(String hash_key) {
         return blobs.get(hash_key);
     }
 
