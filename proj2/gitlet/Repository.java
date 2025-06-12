@@ -105,11 +105,13 @@ public class Repository {
             System.exit(0);
         }
 
+        File branchFile = new File(GITLET_DIR, head.whichBranch());
         Branch headBranch = this.getHeadBranch();
         headBranch.commit(message, addStage,  rmStage);
         head = headBranch.getHead();
 
         writeObject(HEAD, head);
+        writeObject(branchFile, headBranch);
         writeObject(ADDSTAGE, clearMap);
         writeObject(RMSTAGE, clearMap);
     }
