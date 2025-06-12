@@ -14,65 +14,99 @@ import static gitlet.Utils.*;
  *  @author TODO
  */
 public class Commit implements Serializable {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Commit class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided one example for `message`.
-     */
-
     /** The message of this Commit. */
     private String message;
     /** The timestamp for this Commit. */
     private long timestamp;
     /** The parent of this Commit */
-    private Commit parent;
+    private String parentHash;
     /** The file structure and its reference to blob */
-    private Map<String, String> files;
+    private Map<String, String> fileMap;
+    private int unStored;
+    private String branch;
     private String commitHash;
+
 
     public Commit() {};
 
     public Commit(String message, Commit parent) {
         this.message = message == null ? "" : message;
-        this.parent = parent;
+        this.parentHash = parent == null ? null : parent.commitHash();
+        branch = parent == null ? "master" : parent.whichBranch();
         timestamp = new Date().getTime();
-        files = new HashMap<>();
-        /**
-         * TODO: write a function to add stageFile to Commit
-         */
-        if (parent != null) {
-            files = parent.files;
+        fileMap = new HashMap<>();
+        unStored = parent == null ? 0 : parent.unStored() + 1;
+        if (parentHash != null) {
+            fileMap = parent.getFileMap();
         }
+        hashConstructor();
     }
 
-
-    public String getMessage() {
-        return message;
-    }
-
-    public String getHash() {
-        if (commitHash == null) {
-            commitHash = sha1(this);
-        }
+    public String commitHash() {
         return commitHash;
     }
 
+    private void hashConstructor() {
+        if (parentHash != null && !fileMap.isEmpty()) {
+            commitHash = sha1(this.message, String.valueOf(timestamp), parentHash, fileMap.toString());
+        } else {
+            commitHash = sha1(this.message, String.valueOf(timestamp));
+        }
+    }
+
+    public String whichBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    public Map<String, String> getFileMap() {
+        return fileMap;
+    }
+
+    public String parentHash(){
+        return parentHash;
+    }
     /**
      * @param fileName the file you want to get hashCode
      * @return the hashCode of the input file
      */
     public String find(String fileName) {
-        return parent == null ? null : files.get(fileName);
+        return parentHash == null ? null : fileMap.get(fileName);
     }
 
     /**
-     * @param fileName the file to put into blob
+     * @param fileName the file to add into blob
      * @param hash hashCode of the file
      */
-    public void put(String fileName, String hash) {
-        files.put(fileName, hash);
+    public void add(String fileName, String hash) {
+        fileMap.put(fileName, hash);
+    }
+
+
+    public void remove(String fileName, String hash) {
+        fileMap.remove(fileName, hash);
+    }
+
+    public int unStored() {
+        return unStored;
+    }
+
+    public void store(Branch branch) {
+        this.storeHelper(branch);
+    }
+
+    private void storeHelper(Branch branch) {
+        Commit parent = branch.parent(this);
+        if (this.unStored == 0 || parent == null) {
+            return;
+        } else if (this.unStored > 0) {
+            parent.storeHelper(branch);
+            this.unStored = 0;
+            branch.addCommit(this);
+        }
     }
 
 
@@ -86,31 +120,6 @@ public class Commit implements Serializable {
         sb.append("message: " + message + "\n");
         return sb.toString();
     }
-
-    public boolean isInit() {
-        return parent == null;
-    }
-
-    public Commit parent() {
-        return parent;
-    }
-
-    public void printInOrder() {
-        if (this.isInit()) {
-            return;
-        } else {
-            parent.printInOrder();
-            System.out.println(this);
-            System.out.println("---");
-            System.out.println();
-        }
-    }
-
-
-
-
 }
-
-
 
 
