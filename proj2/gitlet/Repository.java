@@ -135,7 +135,6 @@ public class Repository {
         }
     }
 
-
     public void log() {
         master = readObject(MASTER, Branch.class);
         System.out.println(master);

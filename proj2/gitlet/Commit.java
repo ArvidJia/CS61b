@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Locale;
 import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
@@ -33,7 +34,7 @@ public class Commit implements Serializable {
         this.message = message == null ? "" : message;
         this.parentHash = parent == null ? null : parent.commitHash();
         branch = parent == null ? "master" : parent.whichBranch();
-        timestamp = new Date().getTime();
+        timestamp = parent == null ? new Date(0).getTime() : new Date().getTime();
         fileMap = new HashMap<>();
         unStored = parent == null ? 0 : parent.unStored() + 1;
         if (parentHash != null) {
@@ -113,11 +114,12 @@ public class Commit implements Serializable {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         Date date = new Date(timestamp);
-        Formatter formatter = new Formatter();
+        Formatter formatter = new Formatter(Locale.ENGLISH);
         formatter.format("Date: %1$ta %1$tb %1$td %1$tT %1$tY %1$tz",date);
         sb.append("===\ncommit " + commitHash + "\n");
-        sb.append("Data: " +formatter.toString() + "\n");
-        sb.append("message: " + message + "\n");
+        sb.append(formatter.toString() + "\n");
+        sb.append(message);
+        sb.append("\n\n");
         return sb.toString();
     }
 }

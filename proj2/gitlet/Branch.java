@@ -43,23 +43,22 @@ public class Branch implements Serializable {
         return head;
     }
 
-    public String toString() {
-        return toStringHelper(head).toString();
-    }
-
     public Commit parent(Commit commit){
         String parentHash = commit.parentHash();
         return parentHash == null ? null : commits.get(parentHash);
     }
 
-    private StringBuilder toStringHelper(Commit commit) {
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        return toStringHelper(head, sb).toString();
+    }
+
+    private StringBuilder toStringHelper(Commit commit, StringBuilder sb) {
         if (commit == null){
-            StringBuilder sb = new StringBuilder();
             return sb;
         } else {
-            StringBuilder sb = toStringHelper(parent(commit));
             sb.append(commit);
-            sb.append("---\n");
+            sb = toStringHelper(parent(commit), sb);
             return sb;
         }
     }
