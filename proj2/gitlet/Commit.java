@@ -23,8 +23,6 @@ public class Commit implements Serializable {
     private String parentHash;
     /** The file structure and its reference to blob */
     private Map<String, String> fileMap;
-    private int unStored;
-    private String branch;
     private String commitHash;
 
 
@@ -33,10 +31,8 @@ public class Commit implements Serializable {
     public Commit(String message, Commit parent) {
         this.message = message == null ? "" : message;
         this.parentHash = parent == null ? null : parent.commitHash();
-        branch = parent == null ? "master" : parent.whichBranch();
         timestamp = parent == null ? new Date(0).getTime() : new Date().getTime();
         fileMap = new HashMap<>();
-        unStored = parent == null ? 0 : parent.unStored() + 1;
         if (parentHash != null) {
             fileMap = parent.getFileMap();
         }
@@ -55,13 +51,6 @@ public class Commit implements Serializable {
         }
     }
 
-    public String whichBranch() {
-        return branch;
-    }
-
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
 
     public Map<String, String> getFileMap() {
         return fileMap;
@@ -90,26 +79,6 @@ public class Commit implements Serializable {
     public void remove(String fileName, String hash) {
         fileMap.remove(fileName, hash);
     }
-
-    public int unStored() {
-        return unStored;
-    }
-
-    public void store(Branch branch) {
-        this.storeHelper(branch);
-    }
-
-    private void storeHelper(Branch branch) {
-        Commit parent = branch.parent(this);
-        if (this.unStored == 0 || parent == null) {
-            return;
-        } else if (this.unStored > 0) {
-            parent.storeHelper(branch);
-            this.unStored = 0;
-            branch.addCommit(this);
-        }
-    }
-
 
     public String toString() {
         StringBuilder sb = new StringBuilder();

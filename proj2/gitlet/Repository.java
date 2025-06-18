@@ -5,7 +5,6 @@ import static gitlet.Utils.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import static gitlet.Blobs.*;
 
 /** Represents a gitlet repository.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -26,21 +25,23 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final File MASTER = join(GITLET_DIR, "master");
+    public static final File COMMITS = join(GITLET_DIR, "commits");
     public static final File ADDSTAGE = join(GITLET_DIR, "stage");
     public static final File RMSTAGE = join(GITLET_DIR, "rmstage");
     public static final File HEAD = join(GITLET_DIR, "head");
+    public static final File BLOBS = join(GITLET_DIR, "blobs");
     private Blobs blobs;
-    private Branch master;
+    private Commits commits;
     private Commit head;
     //HashMap<FileName, HashCode>
     private HashMap<String, String> addStage = new HashMap<>();
     private HashMap<String, String> rmStage = new HashMap<>();
     private final HashMap<String, String> clearMap = new HashMap<>();
+
     public Repository() {
         blobs = new Blobs();
-        master = new Branch();
-        head = master.getHead();
+        commits = new Commits();
+        head = commits.getHead();
     }
 
     public void init() {
@@ -48,7 +49,7 @@ public class Repository {
             GITLET_DIR.mkdirs();
             try {
                 BLOBS.createNewFile();
-                MASTER.createNewFile();
+                COMMITS.createNewFile();
                 ADDSTAGE.createNewFile();
                 RMSTAGE.createNewFile();
                 HEAD.createNewFile();
@@ -57,7 +58,7 @@ public class Repository {
             }
             writeObject(HEAD, head);
             writeObject(BLOBS, blobs);
-            writeObject(MASTER, (Serializable) master);
+            writeObject(COMMITS, (Serializable) commits);
             writeObject(RMSTAGE, (Serializable) rmStage);
             writeObject(ADDSTAGE, (Serializable) addStage);
         } else {
@@ -105,39 +106,25 @@ public class Repository {
             System.exit(0);
         }
 
-        File branchFile = new File(GITLET_DIR, head.whichBranch());
-        Branch headBranch = this.getHeadBranch();
-        headBranch.commit(message, addStage,  rmStage);
-        head = headBranch.getHead();
+        commits = readObject(COMMITS, Commits.class);
+        commits.commit(message, addStage, rmStage);
+        head = commits.getHead();
 
         writeObject(HEAD, head);
-        writeObject(branchFile, headBranch);
+        writeObject(COMMITS, commits);
         writeObject(ADDSTAGE, clearMap);
         writeObject(RMSTAGE, clearMap);
     }
 
     public void branch(String branchName) {
-        head = readObject(HEAD, Commit.class);
-        File branchFile = new File(GITLET_DIR, branchName);
-        if (branchFile.exists() && branchFile.isFile()) {
-            System.out.println("A branch with that name already exists");
-            System.exit(1);
-        } else {
-            try {
-                branchFile.createNewFile();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            head.setBranch(branchName);
-            Branch newBranch = new Branch(head);
-            writeObject(HEAD, head);
-            writeObject(branchFile, newBranch);
-        }
+       commits = readObject(COMMITS, Commits.class);
+       commits.branch(branchName);
+       writeObject(COMMITS, commits);
     }
 
     public void log() {
-        master = readObject(MASTER, Branch.class);
-        System.out.println(master);
+        commits = readObject(COMMITS, Commits.class);
+        System.out.println(commits);
         System.exit(0);
     }
 
@@ -151,15 +138,6 @@ public class Repository {
         writeContents(file, contents);
     }
 
-    private Branch getHeadBranch() {
-        File BRANCH = new File(GITLET_DIR, head.whichBranch());
-        if (BRANCH.exists() && BRANCH.isFile()) {
-            Branch branch = readObject(BRANCH, Branch.class);
-            return branch;
-        } else {
-            System.exit(0);
-            return null;
-        }
-    }
+
 
 }
