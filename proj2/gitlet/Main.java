@@ -14,7 +14,6 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
         if (args.length == 0) {
             System.out.println("Please enter a command");
             System.exit(0);
@@ -56,10 +55,21 @@ public class Main {
                 break;
             case "checkout":
                 switch (args.length){
+                    case 2:
+                        String branchName = args[1];
+                        repo.checkoutBranch(branchName);
+                        break;
                     case 3:
                         if(args[1].equals("--")){
                             String checkFile = args[2];
-                            repo.checkOut(checkFile);
+                            repo.checkoutFile(checkFile);
+                        }
+                        break;
+                    case 4:
+                        if(args[2].equals("--")){
+                            String commitID = args[1];
+                            String checkFile = args[3];
+                            repo.checkoutId(commitID, checkFile);
                         }
                         break;
                 }

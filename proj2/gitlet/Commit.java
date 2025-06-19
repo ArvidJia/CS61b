@@ -9,10 +9,12 @@ import java.util.Locale;
 import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
- *
- *  @author TODO
+ *  It maintains some metadata like time, messages and a fileMap.
+ *  fileMap<fileName, fileHash>, as the heart of Commit,
+ *  holds the reference to blobs, which holds the fileContent.
+ *  It serves as a bridge between fileName to fileContent, to
+ *  getfileContent, findFileHash or judgeIsFileExists, etc.
+ *  @author Arvid Jia
  */
 public class Commit implements Serializable {
     /** The message of this Commit. */
@@ -34,7 +36,7 @@ public class Commit implements Serializable {
         timestamp = parent == null ? new Date(0).getTime() : new Date().getTime();
         fileMap = new HashMap<>();
         if (parentHash != null) {
-            fileMap = parent.getFileMap();
+            fileMap.putAll(parent.getFileMap());
         }
         hashConstructor();
     }
@@ -61,7 +63,7 @@ public class Commit implements Serializable {
     }
     /**
      * @param fileName the file you want to get hashCode
-     * @return the hashCode of the input file
+     * @return hashCode of the input file, return null when not exist
      */
     public String find(String fileName) {
         return parentHash == null ? null : fileMap.get(fileName);

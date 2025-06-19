@@ -5,22 +5,16 @@ import static gitlet.Utils.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
- *
+ *  Interacts with lower level classes like Commit, Blob or Branch
+ *  to make true gitlet command happen.
+ *  Central brain of the gitlet system.
  *  @author Arvid Jia
  */
 public class Repository {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Repository class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided two examples for you.
-     */
-
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
@@ -74,7 +68,7 @@ public class Repository {
         Commit head = readObject(HEAD, Commit.class);
         String oldFileHash = head.find(fileName);
         String newFileHash = blobs.add(file);
-        if (oldFileHash == null && newFileHash == null) {
+        if (oldFileHash != null && newFileHash == null) {
             System.out.println("This file " + fileName + "is not changed");
             System.exit(0);
         }
@@ -128,15 +122,87 @@ public class Repository {
         System.exit(0);
     }
 
-    public void checkOut(String fileName) {
+    public void status() {
+        commits = readObject(COMMITS, Commits.class);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("=== Branches ===\n");
+        builder.append(commits.printBranch());
+        builder.append("\n");
+
+        builder.append("=== Staged Files ===\n");
+        builder.append(this.printStages());
+        builder.append("\n");
+
+        builder.append("=== Removed Files ===\n");
+        builder.append(this.printRmStages());
+        builder.append("\n");
+
+        /** TODO: Untracked && NotStaged Files */
+    }
+
+
+    public void checkoutBranch(String branchName) {
+        commits = readObject(COMMITS, Commits.class);
+        commits.checkout(branchName);
+        writeObject(COMMITS, commits);
+    }
+
+    public void checkoutId(String commitId, String fileName) {
+        commits = readObject(COMMITS, Commits.class);
+        Commit wanted = commits.find(commitId);
+        if (wanted == null) {
+            System.out.println("No commit with id exists");
+            System.exit(0);
+        }
+        String fileHash = wanted.find(fileName);
+        if (fileHash == null) {
+            System.out.println("File does not exist in that commit");
+            System.exit(0);
+        }
+        blobs = readObject(BLOBS, Blobs.class);
+        String contents = blobs.get(fileHash);
+
+        File file = join(CWD, fileName);
+        writeContents(file, contents);
+    }
+
+    public void checkoutFile(String fileName) {
         head = readObject(HEAD, Commit.class);
         String hash = head.find(fileName);
+        if (hash == null) {
+            System.out.println("File does not exist in that commit");
+            System.exit(0);
+        }
         blobs = readObject(BLOBS, Blobs.class);
         String contents = blobs.get(hash);
 
         File file = join(CWD, fileName);
         writeContents(file, contents);
     }
+
+    private String printStages() {
+        StringBuilder builder = new StringBuilder();
+        addStage = readObject(ADDSTAGE, HashMap.class);
+        Iterator<String> addIter = addStage.keySet().iterator();
+        while (addIter.hasNext()) {
+            builder.append(addIter.next());
+            builder.append("\n");
+        }
+        return  builder.toString();
+    }
+
+    private String printRmStages() {
+        StringBuilder builder = new StringBuilder();
+        rmStage = readObject(RMSTAGE, HashMap.class);
+        Iterator<String> rmIter = rmStage.keySet().iterator();
+        while (rmIter.hasNext()) {
+            builder.append(rmIter.next());
+            builder.append("\n");
+        }
+        return  builder.toString();
+    }
+
 
 
 

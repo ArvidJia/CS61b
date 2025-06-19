@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class Commits implements Serializable {
@@ -10,8 +11,6 @@ public class Commits implements Serializable {
     private String headHash;
     private String headBranch;
 
-
-
     public Commits() {
         Commit init = new Commit("initial commit", null);
         headHash = init.commitHash();
@@ -19,6 +18,10 @@ public class Commits implements Serializable {
         headHash = init.commitHash();
         headBranch = "master";
         branch.add(headBranch, init);
+    }
+
+    public Commit find(String commitId) {
+        return commits.get(commitId);
     }
 
     public void commit(String message, HashMap<String, String> addStage, HashMap<String, String> rmStage) {
@@ -59,7 +62,6 @@ public class Commits implements Serializable {
         return hash;
     }
 
-
     public void addCommit(Commit commit) {
         headHash = commit.commitHash();
         commits.put(headHash, commit);
@@ -73,6 +75,11 @@ public class Commits implements Serializable {
         String parentHash = commit.parentHash();
         return parentHash == null ? null : commits.get(parentHash);
     }
+
+    public String printBranch() {
+        return branch.toString();
+    }
+
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -98,8 +105,9 @@ public class Commits implements Serializable {
         }
 
         public String update(String Name, String Hash) {
-           if (nameHash.containsKey(Name) && hashName.containsKey(Hash)) {
-               nameHash.put(Name, Hash);
+           if (nameHash.containsKey(Name)) {
+               String oldhash = nameHash.put(Name, Hash);
+               hashName.remove(oldhash, Name);
                hashName.put(Hash, Name);
                return Hash;
            }
@@ -130,6 +138,20 @@ public class Commits implements Serializable {
                 return nameHash.get(key);
             }
             return hashName.get(key);
+        }
+
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            Iterator<String> it = nameHash.keySet().iterator();
+            if (!it.hasNext()) {
+                String name = it.next();
+                if (name == headBranch){
+                    sb.append("*");
+                }
+                sb.append(it.next());
+                sb.append("\n");
+            }
+            return sb.toString();
         }
     }
 }

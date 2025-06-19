@@ -12,11 +12,16 @@ public class Blobs implements Serializable {
     private Map<String, String> blobs;
     public static File BLOBS = join(GITLET_DIR, "blobs");
 
-
     public Blobs() {
         blobs = new java.util.HashMap<String, String>();
     }
 
+    /**
+     * Add @file to blobs, return its hashcode when successfully
+     * return null when it exists
+     * @param file file to add into blob
+     * @return if exists, return null; else return hashCode
+     */
     public String add(File file) {
         String contents = readContentsAsString(file);
         String hashKey = Utils.sha1(contents);
@@ -28,8 +33,6 @@ public class Blobs implements Serializable {
         }
         return hashKey;
     }
-
-
 
     public String get(String hash_key) {
         return blobs.get(hash_key);
