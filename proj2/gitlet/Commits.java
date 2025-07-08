@@ -6,6 +6,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class Commits implements Serializable {
+    /**
+     * stores all the commits exists in the repo
+     * no matter which branch it's in
+     */
     private Map<String, Commit> commits = new HashMap<>();
     private Branch branch = new Branch();
     private String headHash;
@@ -52,6 +56,11 @@ public class Commits implements Serializable {
         return hash;
     }
 
+    /**
+     * move current HEAD pointer to given branch
+     * @param branchName the branch to check out
+     * @return
+     */
     public String checkout(String branchName) {
         String hash = branch.get(branchName);
         if (hash == null) {
@@ -80,22 +89,43 @@ public class Commits implements Serializable {
         return branch.toString();
     }
 
-
+    /**
+     * Build a string contains ALL the commits
+     * @return string
+     */
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        return toStringHelper(getHead(), sb).toString();
+        Iterator<Commit> iterator = commits.values().iterator();
+        while (iterator.hasNext()) {
+            sb.append(iterator.next());
+        }
+        return sb.toString();
     }
 
-    private StringBuilder toStringHelper(Commit commit, StringBuilder sb) {
+    /**
+     * print commits from head orderly
+     * @return commit string from head
+     */
+    public String log() {
+        StringBuilder sb = new StringBuilder();
+        return logHelper(getHead(), sb).toString();
+    }
+
+    private StringBuilder logHelper(Commit commit, StringBuilder sb) {
         if (commit == null){
             return sb;
         } else {
             sb.append(commit);
-            sb = toStringHelper(parent(commit), sb);
+            sb = logHelper(parent(commit), sb);
             return sb;
         }
     }
 
+    /**
+     * maintaining a bidirectional map
+     * to look up BranchName and its HashCode
+     */
     private class Branch implements Serializable {
         private Map<String, String> nameHash;
         private Map<String, String> hashName;

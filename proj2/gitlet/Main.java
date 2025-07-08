@@ -74,6 +74,8 @@ public class Main {
                         break;
                 }
                 break;
+            case "branch":
+                break;
             case "log":
                 repo.log();
                 break;

@@ -110,6 +110,10 @@ public class Repository {
         writeObject(RMSTAGE, clearMap);
     }
 
+    /**
+     * Add a new branch
+     * @param branchName The name of branch
+     */
     public void branch(String branchName) {
        commits = readObject(COMMITS, Commits.class);
        commits.branch(branchName);
@@ -117,6 +121,12 @@ public class Repository {
     }
 
     public void log() {
+        commits = readObject(COMMITS, Commits.class);
+        System.out.println(commits.log());
+        System.exit(0);
+    }
+
+    public void globalLog() {
         commits = readObject(COMMITS, Commits.class);
         System.out.println(commits);
         System.exit(0);
@@ -141,7 +151,10 @@ public class Repository {
         /** TODO: Untracked && NotStaged Files */
     }
 
-
+    /**
+     * checkout to a branch
+     * @param branchName the branch to checkout
+     */
     public void checkoutBranch(String branchName) {
         commits = readObject(COMMITS, Commits.class);
         commits.checkout(branchName);
