@@ -72,19 +72,36 @@ public class Commits implements Serializable {
     }
 
     /**
-     * move current HEAD pointer to given branch
+     * move the current HEAD pointer to given branch
      * @param branchName the branch to check out
-     * @return
+     * @return head commit of @param branchName
      */
-    public String checkout(String branchName) {
+    public Commit checkout(String branchName) {
+        headHash = branch.get(branchName);
+        headBranch = branchName;
+        return getHead();
+    }
+
+    public void checkoutSafeHelper(String branchName, Map<String, String> untrackedMap) {
         String hash = branch.get(branchName);
         if (hash == null) {
-            System.out.println("A branch with that name doesn't exist.");
-            return null;
+            System.out.println("No such branch exists.");
+            System.exit(0);
+        } else if (branchName.equals(headBranch)) {
+            System.out.println("No need to checkout the current branch.");
+            System.exit(0);
+        } else if (!untrackedMap.isEmpty()) {
+            Commit branchHead = commits.get(hash);
+            for (Map.Entry<String, String> entry : untrackedMap.entrySet()) {
+                String untrackedFile = entry.getKey();
+                String contentHash = entry.getValue();
+                if (!branchHead.find(untrackedFile,contentHash)) {
+                    System.out.println("There is an untracked file in the way;" +
+                            " delete it, or add and commit it first.");
+                    System.exit(0);
+                }
+            }
         }
-        headHash = hash;
-        headBranch = branchName;
-        return hash;
     }
 
     public void addCommit(Commit commit) {

@@ -62,14 +62,14 @@ public class Repository {
     public void add(String fileName) {
         File file = join(CWD, fileName);
         blobs = readObject(BLOBS, Blobs.class);
-        addStage = readObject(ADDSTAGE, HashMap.class);
-        Commit head = readObject(HEAD, Commit.class);
+        head = readObject(HEAD, Commit.class);
         String oldFileHash = head.find(fileName);
         String newFileHash = blobs.add(file);
         if (oldFileHash != null && newFileHash == null) {
             System.out.println("This file " + fileName + "is not changed");
             System.exit(0);
         }
+        addStage = readObject(ADDSTAGE, HashMap.class);
         writeObject(BLOBS, blobs);
         addStage.put(fileName, newFileHash);
         writeObject(ADDSTAGE, addStage);
@@ -147,6 +147,7 @@ public class Repository {
         commits = readObject(COMMITS, Commits.class);
         addStage = readObject(ADDSTAGE, HashMap.class);
         rmStage = readObject(RMSTAGE, HashMap.class);
+        head = commits.getHead();
 
         StringBuilder builder = new StringBuilder();
         builder.append("=== Branches ===\n");
@@ -162,9 +163,9 @@ public class Repository {
         builder.append("\n");
 
         List<String> cwdFileList = plainFilenamesIn(CWD);
-        builder.append(this.printNotStaged(commits.getHead(), cwdFileList));
+        builder.append(this.printNotStaged(head, cwdFileList));
         builder.append("\n");
-        builder.append(this.printUnTracked(commits.getHead(), cwdFileList));
+        builder.append(this.printUnTracked(head, cwdFileList));
         builder.append("\n");
 
         System.out.println(builder);
@@ -176,8 +177,40 @@ public class Repository {
      */
     public void checkoutBranch(String branchName) {
         commits = readObject(COMMITS, Commits.class);
-        commits.checkout(branchName);
+        blobs = readObject(BLOBS, Blobs.class);
+        Commit oldHead = readObject(HEAD, Commit.class);
+        List<String> unTracked = getUnTracked(oldHead, plainFilenamesIn(CWD));
+        Map<String,String> unTrackedFileMap = new HashMap<>();
+        if (!unTracked.isEmpty()) {
+            unTrackedFileMap = getFileMapFromList(unTracked);
+        }
+        commits.checkoutSafeHelper(branchName,unTrackedFileMap);
+        head = commits.checkout(branchName);
+        Map<String,String> headMap = head.getFileMap();
+        for (String fileName : headMap.keySet()) {
+            File file = join(CWD, fileName);
+            String fileHash = headMap.get(fileName);
+            if (file.exists() && file.isFile()) {
+                String contents = blobs.get(fileHash);
+                writeContents(file, contents);
+            } else {
+                System.out.println("File does not exist in that commit");
+                System.exit(0);
+            }
+        }
+
+        for (String fileName : oldHead.getFileMap().keySet()) {
+            File file = join(CWD, fileName);
+            if (!headMap.containsKey(fileName)) {
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                }
+            }
+        }
         writeObject(COMMITS, commits);
+        writeObject(HEAD, head);
+        writeObject(ADDSTAGE, clearMap);
+        writeObject(RMSTAGE, clearMap);
     }
 
     public void checkoutId(String commitId, String fileName) {
@@ -243,9 +276,10 @@ public class Repository {
         return  builder.toString();
     }
 
-    private String printUnTracked(Commit head, List<String> cwdFileList) {
+    private List<String> getUnTracked(Commit head, List<String> cwdFileList) {
         List<String> unTrackedList = new ArrayList<>();
         Map<String,String> headMap = head.getFileMap();
+        addStage = readObject(ADDSTAGE, HashMap.class);
         for (String fileName : cwdFileList) {
             if (!headMap.containsKey(fileName) && !addStage.containsKey(fileName)) {
                 //UnTracked: File exists in CWD but not in HEAD.
@@ -253,6 +287,11 @@ public class Repository {
                 unTrackedList.add(fileName);
             }
         }
+        return unTrackedList;
+    }
+
+    private String printUnTracked(Commit head, List<String> cwdFileList) {
+        List<String> unTrackedList = getUnTracked(head, cwdFileList);
         Collections.sort(unTrackedList);
         StringBuilder unTracked = new StringBuilder("=== Untracked Files ===\n");
         for (String fileName : unTrackedList) {
@@ -262,7 +301,7 @@ public class Repository {
         return unTracked.toString();
     }
 
-    public String printNotStaged(Commit head, List<String> cwdFileList) {
+    private String printNotStaged(Commit head, List<String> cwdFileList) {
         Map<String,String> headMap = head.getFileMap();
         List<String> notStagedList = new ArrayList<>();
         for (String fileName : headMap.keySet()) {
@@ -294,6 +333,16 @@ public class Repository {
         }
         return notStaged.toString();
     }
+
+    private Map<String,String> getFileMapFromList( List<String> fileList) {
+        Map<String,String> fileMap = new HashMap<>();
+        for (String fileName : fileList) {
+            String fileHash = Blobs.getContentHash(join(CWD, fileName));
+            fileMap.put(fileName, fileHash);
+        }
+        return fileMap;
+    }
+
 
 
 

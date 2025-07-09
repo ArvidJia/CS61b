@@ -57,7 +57,6 @@ public class Commit implements Serializable {
         }
     }
 
-
     public Map<String, String> getFileMap() {
         return fileMap;
     }
@@ -74,13 +73,33 @@ public class Commit implements Serializable {
     }
 
     /**
+     * Determines if the specified file and its hash code exist in the file map
+     * and matches the given hash. Returns false if the parent hash is null or
+     * if the file is not found or does not match the given hash.
+     *
+     * @param fileName the name of the file whose hash is to be verified
+     * @param hash the expected hash value to be compared
+     * @return true if the file exists in the file map and its hash matches the
+     *         provided hash, false otherwise
+     */
+    public boolean find(String fileName, String hash) {
+        if (parentHash == null) {
+            return false;
+        }
+        if (fileMap.containsKey(fileName)) {
+            return fileMap.get(fileName).equals(hash);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @param fileName the file to add into blob
      * @param hash hashCode of the file
      */
     public void add(String fileName, String hash) {
         fileMap.put(fileName, hash);
     }
-
 
     public void remove(String fileName, String hash) {
         fileMap.remove(fileName, hash);
