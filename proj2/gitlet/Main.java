@@ -26,7 +26,6 @@ public class Main {
                 repo.init();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
                 if (args.length != 2) {
                     System.out.println("Please enter two arguments");
                     System.exit(0);
@@ -75,11 +74,23 @@ public class Main {
                 }
                 break;
             case "branch":
+                repo.branch(args[1]);
+                break;
+            case "rm-branch":
+                repo.rmBranch(args[1]);
                 break;
             case "log":
                 repo.log();
                 break;
-
+            case "global-log":
+                repo.globalLog();
+                break;
+            case "status":
+                repo.status();
+                break;
+            case "find":
+                repo.find(args[1]);
+                break;
             // TODO: FILL THE REST IN
         }
     }

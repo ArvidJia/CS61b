@@ -4,9 +4,7 @@ import java.io.File;
 import static gitlet.Utils.*;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /** Represents a gitlet repository.
  *  Interacts with lower level classes like Commit, Blob or Branch
@@ -110,6 +108,8 @@ public class Repository {
         writeObject(RMSTAGE, clearMap);
     }
 
+
+
     /**
      * Add a new branch
      * @param branchName The name of branch
@@ -118,6 +118,18 @@ public class Repository {
        commits = readObject(COMMITS, Commits.class);
        commits.branch(branchName);
        writeObject(COMMITS, commits);
+    }
+
+    public void rmBranch(String branchName) {
+        commits = readObject(COMMITS, Commits.class);
+        commits.removeBranch(branchName);
+        writeObject(COMMITS, commits);
+    }
+
+    public void find(String message) {
+        commits = readObject(COMMITS, Commits.class);
+        String id = commits.findMeassgae(message);
+        System.out.println(id);
     }
 
     public void log() {
@@ -133,7 +145,10 @@ public class Repository {
     }
 
     public void status() {
+        //update group variables
         commits = readObject(COMMITS, Commits.class);
+        addStage = readObject(ADDSTAGE, HashMap.class);
+        rmStage = readObject(RMSTAGE, HashMap.class);
 
         StringBuilder builder = new StringBuilder();
         builder.append("=== Branches ===\n");
@@ -148,8 +163,15 @@ public class Repository {
         builder.append(this.printRmStages());
         builder.append("\n");
 
-        /** TODO: Untracked && NotStaged Files */
+        List<String> cwdFileList = plainFilenamesIn(CWD);
+        builder.append(this.printUnTracked(commits.getHead(), cwdFileList));
+        builder.append("\n");
+        builder.append(this.printNotStaged(commits.getHead(), cwdFileList));
+        builder.append("\n");
+
+        System.out.println(builder);
     }
+
 
     /**
      * checkout to a branch
@@ -196,10 +218,14 @@ public class Repository {
 
     private String printStages() {
         StringBuilder builder = new StringBuilder();
-        addStage = readObject(ADDSTAGE, HashMap.class);
         Iterator<String> addIter = addStage.keySet().iterator();
+        List<String> addStagedList = new ArrayList<>();
         while (addIter.hasNext()) {
-            builder.append(addIter.next());
+            addStagedList.add(addIter.next());
+        }
+        Collections.sort(addStagedList);
+        for (String fileName : addStagedList) {
+            builder.append(fileName);
             builder.append("\n");
         }
         return  builder.toString();
@@ -207,14 +233,71 @@ public class Repository {
 
     private String printRmStages() {
         StringBuilder builder = new StringBuilder();
-        rmStage = readObject(RMSTAGE, HashMap.class);
         Iterator<String> rmIter = rmStage.keySet().iterator();
+        List<String> rmStagedList = new ArrayList<>();
         while (rmIter.hasNext()) {
-            builder.append(rmIter.next());
+            rmStagedList.add(rmIter.next());
+        }
+        Collections.sort(rmStagedList);
+        for (String fileName : rmStagedList) {
+            builder.append(fileName);
             builder.append("\n");
         }
         return  builder.toString();
     }
+
+    private String printUnTracked(Commit head, List<String> cwdFileList) {
+        List<String> unTrackedList = new ArrayList<>();
+        Map<String,String> headMap = head.getFileMap();
+        for (String fileName : cwdFileList) {
+            if (!headMap.containsKey(fileName) && !addStage.containsKey(fileName)) {
+                //UnTracked: File exists in CWD but not in HEAD.
+                //And it's also not staged.
+                unTrackedList.add(fileName);
+            }
+        }
+        Collections.sort(unTrackedList);
+        StringBuilder unTracked = new StringBuilder("=== Untracked Files ===\n");
+        for (String fileName : unTrackedList) {
+            unTracked.append(fileName);
+            unTracked.append("\n");
+        }
+        return unTracked.toString();
+    }
+
+    public String printNotStaged(Commit head, List<String> cwdFileList) {
+        Map<String,String> headMap = head.getFileMap();
+        List<String> notStagedList = new ArrayList<>();
+        for (String fileName : headMap.keySet()) {
+            if (!cwdFileList.contains(fileName)) {
+                //Deleted: File exists in HEAD but not in CWD
+                if (!rmStage.containsKey(fileName)) {
+                    fileName += " (deleted)";
+                    notStagedList.add(fileName);
+                }
+            } else {
+                String fileHash = Blobs.getContentHash(join(CWD, fileName));
+                String fileHashInHead = headMap.get(fileName);
+                String fileHashInStage = addStage.get(fileName);
+                if (!fileHash.equals(fileHashInHead)) {
+                    //Tracked File != Current File
+                    if (!fileHash.equals(fileHashInStage)) {
+                        //Current File != Staged File
+                        fileName += " (modified)";
+                        notStagedList.add(fileName);
+                    }
+                }
+            }
+        }
+        Collections.sort(notStagedList);
+        StringBuilder notStaged = new StringBuilder("=== Modifications Not Staged For Commit ===\n");
+        for (String fileName : notStagedList) {
+            notStaged.append(fileName);
+            notStaged.append("\n");
+        }
+        return notStaged.toString();
+    }
+
 
 
 

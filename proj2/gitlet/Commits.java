@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class Commits implements Serializable {
     /**
-     * stores all the commits exists in the repo
+     * stores all the commits exist in the repo
      * no matter which branch it's in
      */
     private Map<String, Commit> commits = new HashMap<>();
@@ -27,6 +27,23 @@ public class Commits implements Serializable {
     public Commit find(String commitId) {
         return commits.get(commitId);
     }
+
+    public String findMeassgae(String message) {
+        StringBuilder result = new StringBuilder();
+        for (Commit commit : commits.values()) {
+            String messageToFind = commit.message();
+            if (commit.message().equals(message)) {
+                result.append(commit.commitHash());
+                result.append("\n");
+            }
+        }
+        if (result.length() == 0) {
+            return null;
+        }
+        return result.toString();
+    }
+
+
 
     public void commit(String message, HashMap<String, String> addStage, HashMap<String, String> rmStage) {
         Commit newCommit = new Commit(message, this.getHead());

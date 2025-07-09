@@ -45,6 +45,10 @@ public class Commit implements Serializable {
         return commitHash;
     }
 
+    public String message() {
+        return message;
+    }
+
     private void hashConstructor() {
         if (parentHash != null && !fileMap.isEmpty()) {
             commitHash = sha1(this.message, String.valueOf(timestamp), parentHash, fileMap.toString());
@@ -93,6 +97,9 @@ public class Commit implements Serializable {
         sb.append("\n\n");
         return sb.toString();
     }
+
+
+
 }
 
 
