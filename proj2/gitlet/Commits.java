@@ -43,8 +43,6 @@ public class Commits implements Serializable {
         return result.toString();
     }
 
-
-
     public void commit(String message, HashMap<String, String> addStage, HashMap<String, String> rmStage) {
         Commit newCommit = new Commit(message, this.getHead());
         for (Map.Entry<String, String> entry : addStage.entrySet()) {
@@ -81,6 +79,7 @@ public class Commits implements Serializable {
     public String checkout(String branchName) {
         String hash = branch.get(branchName);
         if (hash == null) {
+            System.out.println("A branch with that name doesn't exist.");
             return null;
         }
         headHash = hash;
@@ -140,8 +139,9 @@ public class Commits implements Serializable {
     }
 
     /**
-     * maintaining a bidirectional map
-     * to look up BranchName and its HashCode
+     * maintaining a bidirectional map <branchName, CommitHashPointsTo>
+     * manage branches and the commit it points to.
+     * !!!!FAILED!!!! can't make two branches points to one commit
      */
     private class Branch implements Serializable {
         private Map<String, String> nameHash;
@@ -151,6 +151,11 @@ public class Commits implements Serializable {
             hashName = new HashMap<>();
         }
 
+        public boolean contains(String Name) {
+            return nameHash.containsKey(Name);
+        }
+
+        //Update the commit branch points to.
         public String update(String Name, String Hash) {
            if (nameHash.containsKey(Name)) {
                String oldhash = nameHash.put(Name, Hash);
@@ -170,8 +175,10 @@ public class Commits implements Serializable {
             return null;
         }
 
+        //add a new branch to the repo, it points to the given commit.
         public String add(String branchName, Commit commit) {
-            if (nameHash.containsKey(branchName)) {
+            if (contains(branchName)) {
+                System.out.println("A branch with that name already exists.");
                 return null;
             }
             String hash = commit.commitHash();
@@ -187,15 +194,16 @@ public class Commits implements Serializable {
             return hashName.get(key);
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            Iterator<String> it = nameHash.keySet().iterator();
-            if (!it.hasNext()) {
-                String name = it.next();
-                if (name == headBranch){
+            Iterator<String> iter = nameHash.keySet().iterator();
+            if (iter.hasNext()) {
+                String name = iter.next();
+                if (name.equals(headBranch)){
                     sb.append("*");
                 }
-                sb.append(it.next());
+                sb.append(name);
                 sb.append("\n");
             }
             return sb.toString();

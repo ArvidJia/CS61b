@@ -108,8 +108,6 @@ public class Repository {
         writeObject(RMSTAGE, clearMap);
     }
 
-
-
     /**
      * Add a new branch
      * @param branchName The name of branch
@@ -171,7 +169,6 @@ public class Repository {
 
         System.out.println(builder);
     }
-
 
     /**
      * checkout to a branch

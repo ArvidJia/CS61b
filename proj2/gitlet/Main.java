@@ -39,6 +39,18 @@ public class Main {
                     System.exit(0);
                 }
                 break;
+            case "rm":
+                if (args.length != 2) {
+                    System.out.println("Please enter two arguments");
+                    System.exit(0);
+                }
+                String fileName2 = args[1];
+                File rmFile = join(CWD, fileName2);
+                if (rmFile.exists() && rmFile.isFile()) {
+                    repo.rm(fileName2);
+                } else {
+                    System.out.println("File not found");
+                }
             case "commit":
                 if (args.length != 2){
                     System.out.println("Please enter two arguments");
