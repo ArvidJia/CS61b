@@ -1,6 +1,6 @@
 === Branches ===
+*notEmpty
 master
-*b1
 
 === Staged Files ===
 

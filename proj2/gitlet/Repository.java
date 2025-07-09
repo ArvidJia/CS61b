@@ -63,15 +63,15 @@ public class Repository {
         File file = join(CWD, fileName);
         blobs = readObject(BLOBS, Blobs.class);
         head = readObject(HEAD, Commit.class);
-        String oldFileHash = head.find(fileName);
-        String newFileHash = blobs.add(file);
-        if (oldFileHash != null && newFileHash == null) {
+        String headFileHash = head.find(fileName);
+        String cwdFileHash = blobs.add(file);
+        if (cwdFileHash.equals(headFileHash)) {
             System.out.println("This file " + fileName + "is not changed");
             System.exit(0);
         }
         addStage = readObject(ADDSTAGE, HashMap.class);
         writeObject(BLOBS, blobs);
-        addStage.put(fileName, newFileHash);
+        addStage.put(fileName, cwdFileHash);
         writeObject(ADDSTAGE, addStage);
     }
 

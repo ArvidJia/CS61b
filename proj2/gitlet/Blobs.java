@@ -49,16 +49,15 @@ public class Blobs implements Serializable {
 
 
     /**
-     * Add @file to blobs, return its hashcode when successfully
-     * return null when it exists
+     * Add @file to blobs, return its hashcode
      * @param file file to add into blob
-     * @return if exists, return null; else return hashCode
+     * @return return hashCode
      */
     public String add(File file) {
         String contents = readContentsAsString(file);
         String hashKey = Utils.sha1(contents);
         if (blobs.containsKey(hashKey)) {
-            hashKey = null;
+            return hashKey;
         } else {
             String filerContents = Utils.readContentsAsString(file);
             blobs.put(hashKey, filerContents);
