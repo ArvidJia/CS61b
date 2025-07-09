@@ -9,6 +9,12 @@ import static gitlet.Utils.join;
  *  @author Arvid Jia
  */
 public class Main {
+    private static void checkGitExist() {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            System.exit(0);
+        }
+    };
 
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
@@ -26,8 +32,9 @@ public class Main {
                 repo.init();
                 break;
             case "add":
+                checkGitExist();
                 if (args.length != 2) {
-                    System.out.println("Please enter two arguments");
+                    System.out.println("Incorrect operands.");
                     System.exit(0);
                 }
                 String fileName = args[1];
@@ -40,8 +47,9 @@ public class Main {
                 }
                 break;
             case "rm":
+                checkGitExist();
                 if (args.length != 2) {
-                    System.out.println("Please enter two arguments");
+                    System.out.println("Incorrect operands.");
                     System.exit(0);
                 }
                 String fileName2 = args[1];
@@ -52,19 +60,21 @@ public class Main {
                     System.out.println("File not found");
                 }
             case "commit":
+                checkGitExist();
                 if (args.length != 2){
-                    System.out.println("Please enter two arguments");
+                    System.out.println("Incorrect operands.");
                     System.exit(0);
                 }
                 String message = args[1];
                 if (message.equals("")) {
-                    System.out.println("Please enter a commit message");
+                    System.out.println("Incorrect operands.");
                     System.exit(0);
                 } else {
                     repo.commit(message);
                 }
                 break;
             case "checkout":
+                checkGitExist();
                 switch (args.length){
                     case 2:
                         String branchName = args[1];
@@ -86,23 +96,31 @@ public class Main {
                 }
                 break;
             case "branch":
+                checkGitExist();
                 repo.branch(args[1]);
                 break;
             case "rm-branch":
+                checkGitExist();
                 repo.rmBranch(args[1]);
                 break;
             case "log":
+                checkGitExist();
                 repo.log();
                 break;
             case "global-log":
+                checkGitExist();
                 repo.globalLog();
                 break;
             case "status":
+                checkGitExist();
                 repo.status();
                 break;
             case "find":
+                checkGitExist();
                 repo.find(args[1]);
                 break;
+            default:
+                System.out.println("No command with that name exists");
             // TODO: FILL THE REST IN
         }
     }

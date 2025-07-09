@@ -57,7 +57,7 @@ public class Commits implements Serializable {
         }
         headHash = newCommit.commitHash();
         commits.put(headHash, newCommit);
-        branch.update(headBranch, headHash);
+        branch.update(headBranch, newCommit);
     }
 
     public String branch(String branchName) {
@@ -145,10 +145,8 @@ public class Commits implements Serializable {
      */
     private class Branch implements Serializable {
         private Map<String, String> nameHash;
-        private Map<String, String> hashName;
         public Branch() {
             nameHash = new HashMap<>();
-            hashName = new HashMap<>();
         }
 
         public boolean contains(String Name) {
@@ -156,21 +154,16 @@ public class Commits implements Serializable {
         }
 
         //Update the commit branch points to.
-        public String update(String Name, String Hash) {
+        public String update(String Name, Commit commit) {
            if (nameHash.containsKey(Name)) {
-               String oldhash = nameHash.put(Name, Hash);
-               hashName.remove(oldhash, Name);
-               hashName.put(Hash, Name);
-               return Hash;
+               return nameHash.put(Name, commit.commitHash());
            }
            return null;
         }
 
         public String remove(String Name) {
-            if (nameHash.containsKey(Name) && hashName.containsKey(nameHash.get(Name))) {
-                String hash = nameHash.remove(Name);
-                hashName.remove(hash);
-                return hash;
+            if (nameHash.containsKey(Name) ) {
+                return nameHash.remove(Name);
             }
             return null;
         }
@@ -183,24 +176,18 @@ public class Commits implements Serializable {
             }
             String hash = commit.commitHash();
             nameHash.put(branchName, hash);
-            hashName.put(hash, branchName);
             return hash;
         }
 
         public String get(String key) {
-            if (nameHash.containsKey(key)) {
-                return nameHash.get(key);
-            }
-            return hashName.get(key);
+            return nameHash.get(key);
         }
 
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            Iterator<String> iter = nameHash.keySet().iterator();
-            if (iter.hasNext()) {
-                String name = iter.next();
-                if (name.equals(headBranch)){
+            for (String name : nameHash.keySet()) {
+                if (name.equals(headBranch)) {
                     sb.append("*");
                 }
                 sb.append(name);

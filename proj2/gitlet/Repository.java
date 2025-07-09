@@ -162,9 +162,9 @@ public class Repository {
         builder.append("\n");
 
         List<String> cwdFileList = plainFilenamesIn(CWD);
-        builder.append(this.printUnTracked(commits.getHead(), cwdFileList));
-        builder.append("\n");
         builder.append(this.printNotStaged(commits.getHead(), cwdFileList));
+        builder.append("\n");
+        builder.append(this.printUnTracked(commits.getHead(), cwdFileList));
         builder.append("\n");
 
         System.out.println(builder);
