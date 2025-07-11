@@ -64,6 +64,11 @@ public class Commit implements Serializable {
     public String parentHash(){
         return parentHash;
     }
+
+    public boolean containsFile(String fileName) {
+        return fileMap.containsKey(fileName);
+    }
+
     /**
      * @param fileName the file you want to get hashCode
      * @return hashCode of the input file, return null when not exist

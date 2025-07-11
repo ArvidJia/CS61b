@@ -3,7 +3,6 @@ package gitlet;
 import java.io.File;
 import static gitlet.Utils.*;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.*;
 
 /** Represents a gitlet repository.
@@ -48,11 +47,9 @@ public class Repository {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            writeObject(HEAD, head);
             writeObject(BLOBS, blobs);
-            writeObject(COMMITS, (Serializable) commits);
-            writeObject(RMSTAGE, (Serializable) rmStage);
-            writeObject(ADDSTAGE, (Serializable) addStage);
+            saveCommitsHead();
+            clearStage();
         } else {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
             System.exit(0);
@@ -91,8 +88,7 @@ public class Repository {
     }
 
     public void commit(String message) {
-        addStage = readObject(ADDSTAGE, HashMap.class);
-        rmStage = readObject(RMSTAGE, HashMap.class);
+        readStages();
         if (addStage.isEmpty() && rmStage.isEmpty()) {
             System.out.println("Nothing to commit");
             System.exit(0);
@@ -102,10 +98,8 @@ public class Repository {
         commits.commit(message, addStage, rmStage);
         head = commits.getHead();
 
-        writeObject(HEAD, head);
-        writeObject(COMMITS, commits);
-        writeObject(ADDSTAGE, clearMap);
-        writeObject(RMSTAGE, clearMap);
+        saveCommitsHead();
+        clearStage();
     }
 
     /**
@@ -145,9 +139,8 @@ public class Repository {
     public void status() {
         //update group variables
         commits = readObject(COMMITS, Commits.class);
-        addStage = readObject(ADDSTAGE, HashMap.class);
-        rmStage = readObject(RMSTAGE, HashMap.class);
         head = commits.getHead();
+        readStages();
 
         StringBuilder builder = new StringBuilder();
         builder.append("=== Branches ===\n");
@@ -185,65 +178,71 @@ public class Repository {
             unTrackedFileMap = getFileMapFromList(unTracked);
         }
         commits.checkoutSafeHelper(branchName,unTrackedFileMap);
+        //Passed the safety check
+        //Now head is the new head of branch to checkout
         head = commits.checkout(branchName);
         Map<String,String> headMap = head.getFileMap();
         for (String fileName : headMap.keySet()) {
-            File file = join(CWD, fileName);
-            String fileHash = headMap.get(fileName);
-            if (file.exists() && file.isFile()) {
-                String contents = blobs.get(fileHash);
-                writeContents(file, contents);
-            } else {
-                System.out.println("File does not exist in that commit");
-                System.exit(0);
-            }
+            rewriteFile(fileName, head, blobs);
         }
 
         for (String fileName : oldHead.getFileMap().keySet()) {
-            File file = join(CWD, fileName);
-            if (!headMap.containsKey(fileName)) {
-                if (file.exists() && file.isFile()) {
-                    file.delete();
-                }
-            }
+           deleteFileNotInCommit(fileName, head);
         }
-        writeObject(COMMITS, commits);
-        writeObject(HEAD, head);
-        writeObject(ADDSTAGE, clearMap);
-        writeObject(RMSTAGE, clearMap);
+        saveCommitsHead();
+        clearStage();
     }
 
     public void checkoutId(String commitId, String fileName) {
         commits = readObject(COMMITS, Commits.class);
-        Commit wanted = commits.find(commitId);
-        if (wanted == null) {
-            System.out.println("No commit with id exists");
-            System.exit(0);
+        Commit wanted = commits.findFuzzySafely(commitId);
+        blobs = readObject(BLOBS, Blobs.class);
+        rewriteFile(fileName, wanted, blobs);
+    }
+
+    public void checkoutFile(String fileName) {
+        head = readObject(HEAD, Commit.class);
+        blobs = readObject(BLOBS, Blobs.class);
+        rewriteFile(fileName, head, blobs);
+    }
+
+    public void reset(String commitId) {
+        commits = readObject(COMMITS, Commits.class);
+        head = readObject(HEAD, Commit.class);
+        blobs = readObject(BLOBS, Blobs.class);
+
+        Commit commit  = commits.findFuzzySafely(commitId);
+        for (String fileName : commit.getFileMap().keySet()) {
+            rewriteFile(fileName, head, blobs);
         }
-        String fileHash = wanted.find(fileName);
-        if (fileHash == null) {
+        for (String fileName : head.getFileMap().keySet()) {
+            deleteFileNotInCommit(fileName, commit);
+        }
+        commits.resetHead(commitId);
+
+        saveCommitsHead();
+        clearStage();
+    }
+
+    private void rewriteFile(String fileName, Commit commit, Blobs blobs) {
+        String hash = commit.find(fileName);
+        if (hash == null) {
             System.out.println("File does not exist in that commit");
             System.exit(0);
         }
-        blobs = readObject(BLOBS, Blobs.class);
-        String contents = blobs.get(fileHash);
+        String contents = blobs.get(hash);
 
         File file = join(CWD, fileName);
         writeContents(file, contents);
     }
 
-    public void checkoutFile(String fileName) {
-        head = readObject(HEAD, Commit.class);
-        String hash = head.find(fileName);
-        if (hash == null) {
-            System.out.println("File does not exist in that commit");
-            System.exit(0);
-        }
-        blobs = readObject(BLOBS, Blobs.class);
-        String contents = blobs.get(hash);
-
+    private void deleteFileNotInCommit(String fileName, Commit commit) {
         File file = join(CWD, fileName);
-        writeContents(file, contents);
+        if (!commit.containsFile(fileName)) {
+            if (file.exists() && file.isFile()) {
+                file.delete();
+            }
+        }
     }
 
     private String printStages() {
@@ -343,8 +342,20 @@ public class Repository {
         return fileMap;
     }
 
+    private void saveCommitsHead() {
+        writeObject(HEAD, head);
+        writeObject(COMMITS, commits);
+    }
 
+    private void clearStage() {
+        writeObject(ADDSTAGE, clearMap);
+        writeObject(RMSTAGE, clearMap);
+    }
 
+    private void readStages() {
+        addStage = readObject(ADDSTAGE, HashMap.class);
+        rmStage = readObject(RMSTAGE, HashMap.class);
+    }
 
 
 

@@ -119,9 +119,12 @@ public class Main {
                 checkGitExist();
                 repo.find(args[1]);
                 break;
+            case "reset":
+                checkGitExist();
+                repo.reset(args[1]);
+                break;
             default:
                 System.out.println("No command with that name exists");
-            // TODO: FILL THE REST IN
         }
     }
 }

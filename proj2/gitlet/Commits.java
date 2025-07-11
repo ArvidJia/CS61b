@@ -24,10 +24,57 @@ public class Commits implements Serializable {
         branch.add(headBranch, init);
     }
 
+    /**
+     * Find Commit. Return null if NOT FOUND
+     * @param commitId hashCode of Commit
+     * @return Commit if FOUND
+     */
     public Commit find(String commitId) {
         return commits.get(commitId);
     }
 
+    /**
+     * Find Commit. Exit when NOT FOUND
+     * @param commitId hashCode of Commit
+     * @return Commit if FOUND
+     */
+    public Commit findFuzzySafely(String commitId) {
+        Commit commit = fuzzyFind(commitId);
+        if (commit == null) {
+            System.err.println("No commit with that id exists");
+            System.exit(0);
+        }
+        return commit;
+    }
+
+    /**
+     * Fuzzy find Commit by abbreviated id.
+     * @param commitId (abbreviated) hashCode of Commit
+     * @return found commit or null
+     */
+    public Commit fuzzyFind(String commitId) {
+        if (commitId == null ||  commitId.isEmpty()) {
+            System.err.println("No commit with that id exists");
+            System.exit(0);
+        }
+
+        Commit commit = find(commitId);
+        if (commit == null) {
+            for (String fullId : commits.keySet()) {
+                String lengthEqualId = fullId.substring(0,commitId.length());
+                if (commitId.equals(lengthEqualId)) {
+                    return commits.get(fullId);
+                }
+            }
+        }
+        return commit;
+    }
+
+    /**
+     * Find Commit based on its message
+     * @param message message inside commit metadata
+     * @return Commit if FOUND
+     */
     public String findMeassgae(String message) {
         StringBuilder result = new StringBuilder();
         for (Commit commit : commits.values()) {
@@ -43,6 +90,12 @@ public class Commits implements Serializable {
         return result.toString();
     }
 
+    /**
+     * Commit data inside STAGE AREA
+     * @param message message to commit
+     * @param addStage fileMap in addStage
+     * @param rmStage fileMap in removeStage
+     */
     public void commit(String message, HashMap<String, String> addStage, HashMap<String, String> rmStage) {
         Commit newCommit = new Commit(message, this.getHead());
         for (Map.Entry<String, String> entry : addStage.entrySet()) {
@@ -60,25 +113,43 @@ public class Commits implements Serializable {
         branch.update(headBranch, newCommit);
     }
 
+    /**
+     * Add a pointer named branchName to the head Commit
+     * @param branchName the name of new branch
+     * @return branchHeadHash
+     */
     public String branch(String branchName) {
         Commit head = this.getHead();
         String hash = branch.add(branchName, head);
         return hash;
     }
 
+    /**
+     * Remove the branch pointer if exists.
+     * @param branchName the name of branch to rm
+     * @return branchHeadHash
+     */
     public String removeBranch(String branchName) {
         String hash = branch.remove(branchName);
         return hash;
     }
 
     /**
-     * move the current HEAD pointer to given branch
+     * make head commit of the given branch Commit HEAD
      * @param branchName the branch to check out
      * @return head commit of @param branchName
      */
     public Commit checkout(String branchName) {
-        headHash = branch.get(branchName);
-        headBranch = branchName;
+        return setHeadBranch(branch.get(branchName), branchName);
+    }
+
+    public Commit resetHead(String commitId) {
+        return setHeadBranch(commitId, headBranch);
+    }
+
+    private Commit setHeadBranch(String commitId, String branchName) {
+        headHash = commitId;
+        headBranch = branch(branchName);
         return getHead();
     }
 
