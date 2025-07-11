@@ -32,7 +32,7 @@ public class Commit implements Serializable {
 
     public Commit(String message, Commit parent) {
         this.message = message == null ? "" : message;
-        this.parentHash = parent == null ? null : parent.commitHash();
+        this.parentHash = parent == null ? null : parent.hash();
         timestamp = parent == null ? new Date(0).getTime() : new Date().getTime();
         fileMap = new HashMap<>();
         if (parentHash != null) {
@@ -41,7 +41,7 @@ public class Commit implements Serializable {
         hashConstructor();
     }
 
-    public String commitHash() {
+    public String hash() {
         return commitHash;
     }
 
@@ -56,6 +56,7 @@ public class Commit implements Serializable {
             commitHash = sha1(this.message, String.valueOf(timestamp));
         }
     }
+
 
     public Map<String, String> getFileMap() {
         return fileMap;
@@ -110,6 +111,7 @@ public class Commit implements Serializable {
         fileMap.remove(fileName, hash);
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         Date date = new Date(timestamp);
@@ -122,6 +124,10 @@ public class Commit implements Serializable {
         return sb.toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof Commit && ((Commit) o).hash().equals(this.hash());
+    }
 
 
 }

@@ -1,9 +1,7 @@
 package gitlet;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class Commits implements Serializable {
     /**
@@ -17,9 +15,9 @@ public class Commits implements Serializable {
 
     public Commits() {
         Commit init = new Commit("initial commit", null);
-        headHash = init.commitHash();
+        headHash = init.hash();
         commits.put(headHash, init);
-        headHash = init.commitHash();
+        headHash = init.hash();
         headBranch = "master";
         branch.add(headBranch, init);
     }
@@ -80,7 +78,7 @@ public class Commits implements Serializable {
         for (Commit commit : commits.values()) {
             String messageToFind = commit.message();
             if (commit.message().equals(message)) {
-                result.append(commit.commitHash());
+                result.append(commit.hash());
                 result.append("\n");
             }
         }
@@ -108,7 +106,7 @@ public class Commits implements Serializable {
             String val = entry.getValue();
             newCommit.remove(key, val);
         }
-        headHash = newCommit.commitHash();
+        headHash = newCommit.hash();
         commits.put(headHash, newCommit);
         branch.update(headBranch, newCommit);
     }
@@ -132,6 +130,34 @@ public class Commits implements Serializable {
     public String removeBranch(String branchName) {
         String hash = branch.remove(branchName);
         return hash;
+    }
+
+    public Commit getBranchHead(String branchName) {
+        String hash = branch.get(branchName);
+        return findFuzzySafely(hash);
+    }
+
+    public Commit getSplitPoint(Commit commit1, Commit commit2) {
+       Set<String> visited = new HashSet<>();
+       return find(splitPointHelper(commit1.hash(), commit2.hash(), visited));
+    }
+
+    public String splitPointHelper(String hash1, String hash2, Set<String> visited) {
+        if (visited.contains(hash1)) {
+            return hash1;
+        }
+        visited.add(hash1);
+        if (visited.contains(hash2)) {
+            return hash2;
+        }
+        visited.add(hash2);
+
+        String parentHash1 = find(hash1).parentHash();
+        String parentHash2 = find(hash2).parentHash();
+        parentHash1 = parentHash1 == null ? hash1 : parentHash1;
+        parentHash2 = parentHash2 == null ? hash2 : parentHash2;
+
+        return splitPointHelper(parentHash1, parentHash2, visited);
     }
 
     /**
@@ -176,7 +202,7 @@ public class Commits implements Serializable {
     }
 
     public void addCommit(Commit commit) {
-        headHash = commit.commitHash();
+        headHash = commit.hash();
         commits.put(headHash, commit);
     }
 
@@ -244,7 +270,7 @@ public class Commits implements Serializable {
         //Update the commit branch points to.
         public String update(String Name, Commit commit) {
            if (nameHash.containsKey(Name)) {
-               return nameHash.put(Name, commit.commitHash());
+               return nameHash.put(Name, commit.hash());
            }
            return null;
         }
@@ -262,7 +288,7 @@ public class Commits implements Serializable {
                 System.out.println("A branch with that name already exists.");
                 return null;
             }
-            String hash = commit.commitHash();
+            String hash = commit.hash();
             nameHash.put(branchName, hash);
             return hash;
         }

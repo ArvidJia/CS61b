@@ -118,6 +118,20 @@ public class Repository {
         writeObject(COMMITS, commits);
     }
 
+    public void merge(String branchName) {
+        commits = readObject(COMMITS, Commits.class);
+        head = readObject(HEAD, Commit.class);
+        Commit branch = commits.getBranchHead(branchName);
+        Commit splitPoint = commits.getSplitPoint(head, branch);
+
+        if (splitPoint.equals(branch)) {}
+
+
+    }
+
+
+
+
     public void find(String message) {
         commits = readObject(COMMITS, Commits.class);
         String id = commits.findMeassgae(message);
