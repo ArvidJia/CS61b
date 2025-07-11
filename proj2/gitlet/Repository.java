@@ -213,7 +213,7 @@ public class Repository {
 
         Commit commit  = commits.findFuzzySafely(commitId);
         for (String fileName : commit.getFileMap().keySet()) {
-            rewriteFile(fileName, head, blobs);
+            rewriteFile(fileName, commit, blobs);
         }
         for (String fileName : head.getFileMap().keySet()) {
             deleteFileNotInCommit(fileName, commit);
@@ -224,6 +224,12 @@ public class Repository {
         clearStage();
     }
 
+    /**
+     * rewrite file from the input Commit to CWD
+     * @param fileName file to rewrite
+     * @param commit commit holds the file
+     * @param blobs container holds the content
+     */
     private void rewriteFile(String fileName, Commit commit, Blobs blobs) {
         String hash = commit.find(fileName);
         if (hash == null) {

@@ -149,7 +149,7 @@ public class Commits implements Serializable {
 
     private Commit setHeadBranch(String commitId, String branchName) {
         headHash = commitId;
-        headBranch = branch(branchName);
+        headBranch = branch.get(branchName);
         return getHead();
     }
 
