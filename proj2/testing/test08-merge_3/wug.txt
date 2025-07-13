@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-version 2 wug
-=======
-version 3 wug
->>>>>>>
