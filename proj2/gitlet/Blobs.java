@@ -47,7 +47,6 @@ public class Blobs implements Serializable {
         return fileMap;
     }
 
-
     /**
      * Add @file to blobs, return its hashcode
      * @param file file to add into blob
@@ -77,5 +76,4 @@ public class Blobs implements Serializable {
             return null;
         }
     }
-
 }

@@ -89,7 +89,7 @@ public class Repository {
 
     public void commit(String message) {
         readStages();
-        if (addStage.isEmpty() && rmStage.isEmpty()) {
+        if (stageEmpty()) {
             System.out.println("Nothing to commit");
             System.exit(0);
         }
@@ -119,18 +119,102 @@ public class Repository {
     }
 
     public void merge(String branchName) {
-        commits = readObject(COMMITS, Commits.class);
-        head = readObject(HEAD, Commit.class);
+        readStages();
+        readCommitsHead();
+
+        mergeCheckoutBranchSafe(head, branchName, "No branch with that name exists",
+                "Can not merge a branch with itself");
+        if (!stageEmpty()) {
+            System.out.println("Stage is not empty");
+            System.exit(0);
+        }
         Commit branch = commits.getBranchHead(branchName);
         Commit splitPoint = commits.getSplitPoint(head, branch);
 
-        if (splitPoint.equals(branch)) {}
-
-
+        if (splitPoint.equals(branch)) {
+            System.out.println("Given branch is an ancestor of the current branch");
+        } else if (splitPoint.equals(head)) {
+            System.out.println("Current branch fast-forwarded");
+            checkoutBranch(branchName);
+        } else {
+            normalMerge(head, branch, splitPoint);
+            commits.mergeCommit(branchName, addStage, rmStage);
+            head = commits.getHead();
+            saveCommitsHead();
+            clearStage();
+        }
     }
 
+    private void normalMerge(Commit head, Commit branch, Commit splitPoint) {
+        Map<String,String> headMap = head.getFileMap();
+        blobs = readObject(BLOBS, Blobs.class);
+        boolean isConflict = false;
 
+        for (String fileName : headMap.keySet()) {
+            if (branch.containsFile(fileName)) {
+                // the branch has the file
+                if (splitPoint.hasSameFile(head, fileName) && !splitPoint.hasSameFile(branch, fileName)) {
+                    // branch updated it since splitPoint while head not
+                    checkoutId(branch.hash(), fileName);
+                    add(fileName);
+                } else if (!head.hasSameFile(branch, fileName)) {
+                    // Confilict Case: both changed it
+                    isConflict = dealWithConflict(head, branch, fileName);
+                }
+                // Other cases: 1. splitPoint does not hold it:
+                //                - Current file equals branch file, remain.
+                //                - Confilct Case. Done before.
+                //              2. splitPoint holds it:
+                //                - Current file changed it, remain.
+                //                - Confilct Case. Done before.
+            } else {
+                // the branch did not have the file
+                if (splitPoint.hasSameFile(head, fileName)) {
+                    deleteFileSafely(fileName);
+                } else if (!splitPoint.hasSameFile(head, fileName)) {
+                    // Confilict case
+                    isConflict = dealWithConflict(head, branch, fileName);
+                }
+                // else: current track added or changed the file. keep it.
+            }
+        }
 
+        for (String fileName : branch.getFileMap().keySet()) {
+            if (!head.containsFile(fileName)) {
+                // the branch holds the file but head does not
+                if (splitPoint.containsFile(fileName)) {
+                    if (!splitPoint.hasSameFile(branch, fileName)) {
+                        //branch change, head delete, conflict
+                        isConflict = dealWithConflict(head, branch, fileName);
+                    }
+                } else {
+                    checkoutId(branch.hash(), fileName);
+                    add(fileName);
+                }
+            }
+        }
+
+        if (isConflict) {
+            System.out.println("Encountered a merge conflict.");
+        }
+    }
+
+    private boolean dealWithConflict(Commit head, Commit branch, String fileName) {
+        String headHash = head.find(fileName);
+        String branchHash = branch.find(fileName);
+        String headContent = headHash == null ? "" : blobs.get(headHash);
+        String branchContent = branchHash == null ? "" : blobs.get(branchHash);
+        String confilctContent = "<<<<<<< HEAD\n"
+                               + headContent
+                               + "=======\n"
+                               + branchContent
+                               + ">>>>>>>\n";
+
+        File file = join(CWD, fileName);
+        writeContents(file, confilctContent);
+        add(fileName);
+        return true;
+    }
 
     public void find(String message) {
         commits = readObject(COMMITS, Commits.class);
@@ -186,12 +270,9 @@ public class Repository {
         commits = readObject(COMMITS, Commits.class);
         blobs = readObject(BLOBS, Blobs.class);
         Commit oldHead = readObject(HEAD, Commit.class);
-        List<String> unTracked = getUnTracked(oldHead, plainFilenamesIn(CWD));
-        Map<String,String> unTrackedFileMap = new HashMap<>();
-        if (!unTracked.isEmpty()) {
-            unTrackedFileMap = getFileMapFromList(unTracked);
-        }
-        commits.checkoutSafeHelper(branchName,unTrackedFileMap);
+
+        mergeCheckoutBranchSafe(oldHead, branchName, "No such branch exists",
+                "No need to checkout the current branch");
         //Passed the safety check
         //Now head is the new head of branch to checkout
         head = commits.checkout(branchName);
@@ -257,11 +338,8 @@ public class Repository {
     }
 
     private void deleteFileNotInCommit(String fileName, Commit commit) {
-        File file = join(CWD, fileName);
         if (!commit.containsFile(fileName)) {
-            if (file.exists() && file.isFile()) {
-                file.delete();
-            }
+           deleteFileSafely(fileName);
         }
     }
 
@@ -377,6 +455,30 @@ public class Repository {
         rmStage = readObject(RMSTAGE, HashMap.class);
     }
 
+    private boolean stageEmpty() {
+        return addStage.isEmpty() && rmStage.isEmpty();
+    }
 
+    private void readCommitsHead() {
+        commits = readObject(COMMITS, Commits.class);
+        head = readObject(HEAD, Commit.class);
+    }
 
+    private void mergeCheckoutBranchSafe(Commit head, String branchName,
+                                         String notExistPrompt, String sameWithHeadPrompt) {
+        List<String> unTracked = getUnTracked(head, plainFilenamesIn(CWD));
+        Map<String,String> unTrackedFileMap = new HashMap<>();
+        if (!unTracked.isEmpty()) {
+            unTrackedFileMap = getFileMapFromList(unTracked);
+        }
+        commits.mergeCheckoutBranchSafe(branchName,unTrackedFileMap,
+                notExistPrompt, sameWithHeadPrompt);
+    }
+
+    private void deleteFileSafely(String fileName) {
+        File file = join(CWD, fileName);
+        if (file.exists() && file.isFile()) {
+            file.delete();
+        }
+    }
 }

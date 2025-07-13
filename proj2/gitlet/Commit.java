@@ -1,11 +1,8 @@
 package gitlet;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Locale;
+import java.util.*;
+
 import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
@@ -23,10 +20,13 @@ public class Commit implements Serializable {
     private long timestamp;
     /** The parent of this Commit */
     private String parentHash;
+    /**
+     * Second parent for merge commit
+     */
+    private String parentHash2;
     /** The file structure and its reference to blob */
     private Map<String, String> fileMap;
     private String commitHash;
-
 
     public Commit() {};
 
@@ -39,6 +39,22 @@ public class Commit implements Serializable {
             fileMap.putAll(parent.getFileMap());
         }
         hashConstructor();
+    }
+
+    public Commit(String message, Commit parent1, Commit parent2) {
+        this.message = message == null ? "" : message;
+        this.parentHash = parent1.hash();
+        this.parentHash2 = parent2.hash();
+        timestamp = new Date().getTime();
+        fileMap = new HashMap<>();
+        if (parentHash != null) {
+            fileMap.putAll(parent1.getFileMap());
+        }
+        hashConstructor();
+    }
+
+    public boolean isMergeCommit() {
+        return parentHash2 != null;
     }
 
     public String hash() {
@@ -57,13 +73,23 @@ public class Commit implements Serializable {
         }
     }
 
-
     public Map<String, String> getFileMap() {
         return fileMap;
     }
 
     public String parentHash(){
         return parentHash;
+    }
+
+    public String[] parentHashes() {
+        if (parentHash == null) {
+            return null;
+        }
+        if (isMergeCommit()) {
+            return new String[] {parentHash, parentHash2};
+        } else {
+            return new String[] {parentHash};
+        }
     }
 
     public boolean containsFile(String fileName) {
@@ -111,6 +137,43 @@ public class Commit implements Serializable {
         fileMap.remove(fileName, hash);
     }
 
+    public List<String> getDiffFiles(Commit commit) {
+        if (commit == null) {
+            return null;
+        }
+        List<String> diffFiles = new ArrayList<>();
+        Map<String, String> fileMap1 = getFileMap();
+        Map<String, String> fileMap2 = commit.getFileMap();
+        for (String fileName : fileMap1.keySet()) {
+            if (fileMap2.containsKey(fileName) && !fileMap2.get(fileName).equals(fileMap1.get(fileName)) ) {
+                diffFiles.add(fileName);
+            }
+        }
+        return diffFiles.isEmpty() ? null : diffFiles;
+    }
+
+    public List<String> getBonusFiles(Commit commit) {
+        if (commit == null) {
+            return null;
+        }
+        List<String> bonusFiles = new ArrayList<>();
+        Map<String, String> fileMap1 = getFileMap();
+        Map<String, String> fileMap2 = commit.getFileMap();
+        for (String fileName : fileMap1.keySet()) {
+            if (!fileMap2.containsKey(fileName)) {
+                bonusFiles.add(fileName);
+            }
+        }
+        return bonusFiles.isEmpty() ? null : bonusFiles;
+    }
+
+    public boolean hasSameFile(Commit commit,String fileName) {
+        if (commit == null || fileName == null || !fileMap.containsKey(fileName)) {
+            return false;
+        }
+        return find(fileName).equals(commit.find(fileName));
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -118,7 +181,10 @@ public class Commit implements Serializable {
         Formatter formatter = new Formatter(Locale.ENGLISH);
         formatter.format("Date: %1$ta %1$tb %1$td %1$tT %1$tY %1$tz",date);
         sb.append("===\ncommit " + commitHash + "\n");
-        sb.append(formatter.toString() + "\n");
+        if (isMergeCommit()) {
+            sb.append("Merge: " + parentHash.substring(0,7) + " " + parentHash2.substring(0,7) + "\n");
+        }
+        sb.append(formatter + "\n");
         sb.append(message);
         sb.append("\n\n");
         return sb.toString();
@@ -128,8 +194,4 @@ public class Commit implements Serializable {
     public boolean equals(Object o) {
         return o instanceof Commit && ((Commit) o).hash().equals(this.hash());
     }
-
-
 }
-
-

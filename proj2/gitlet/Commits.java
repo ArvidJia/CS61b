@@ -96,19 +96,32 @@ public class Commits implements Serializable {
      */
     public void commit(String message, HashMap<String, String> addStage, HashMap<String, String> rmStage) {
         Commit newCommit = new Commit(message, this.getHead());
+        addStage(newCommit, addStage, rmStage);
+        headHash = newCommit.hash();
+        commits.put(headHash, newCommit);
+        branch.update(headBranch, newCommit);
+    }
+
+    public void mergeCommit(String branchName, HashMap<String, String> addStage, HashMap<String, String> rmStage) {
+        String prompt = "Merged " + branchName + " into " + headBranch + ".";
+        Commit newCommit = new Commit(prompt, this.getHead(), this.getBranchHead(branchName));
+        addStage(newCommit, addStage, rmStage);
+        headHash = newCommit.hash();
+        commits.put(headHash, newCommit);
+        branch.update(headBranch, newCommit);
+    }
+
+    public void addStage(Commit commit,HashMap<String, String> addStage, HashMap<String, String> rmStage) {
         for (Map.Entry<String, String> entry : addStage.entrySet()) {
             String key = entry.getKey();
             String val = entry.getValue();
-            newCommit.add(key, val);
+            commit.add(key, val);
         }
         for (Map.Entry<String, String> entry : rmStage.entrySet()) {
             String key = entry.getKey();
             String val = entry.getValue();
-            newCommit.remove(key, val);
+            commit.remove(key, val);
         }
-        headHash = newCommit.hash();
-        commits.put(headHash, newCommit);
-        branch.update(headBranch, newCommit);
     }
 
     /**
@@ -118,8 +131,7 @@ public class Commits implements Serializable {
      */
     public String branch(String branchName) {
         Commit head = this.getHead();
-        String hash = branch.add(branchName, head);
-        return hash;
+        return branch.add(branchName, head);
     }
 
     /**
@@ -139,25 +151,31 @@ public class Commits implements Serializable {
 
     public Commit getSplitPoint(Commit commit1, Commit commit2) {
        Set<String> visited = new HashSet<>();
-       return find(splitPointHelper(commit1.hash(), commit2.hash(), visited));
+       Deque<String> queue = new ArrayDeque<>();
+       queue.add(commit1.hash());
+       queue.add(commit2.hash());
+       return find(splitPointHelper(queue, visited));
     }
 
-    public String splitPointHelper(String hash1, String hash2, Set<String> visited) {
-        if (visited.contains(hash1)) {
-            return hash1;
-        }
-        visited.add(hash1);
-        if (visited.contains(hash2)) {
-            return hash2;
-        }
-        visited.add(hash2);
+    public String splitPointHelper(Deque<String> queue, Set<String> visited) {
+        while (!queue.isEmpty()) {
+            String hash = queue.poll();
+            if (visited.contains(hash)) {
+                return hash;
+            }
 
-        String parentHash1 = find(hash1).parentHash();
-        String parentHash2 = find(hash2).parentHash();
-        parentHash1 = parentHash1 == null ? hash1 : parentHash1;
-        parentHash2 = parentHash2 == null ? hash2 : parentHash2;
-
-        return splitPointHelper(parentHash1, parentHash2, visited);
+            visited.add(hash);
+            String[] parentHashes = find(hash).parentHashes();
+            if (parentHashes != null) {
+                for (String parentHash : parentHashes) {
+                    if (!visited.contains(parentHash)) {
+                        queue.add(parentHash);
+                    }
+                }
+                return splitPointHelper(queue, visited);
+            }
+        }
+        return null;
     }
 
     /**
@@ -166,26 +184,27 @@ public class Commits implements Serializable {
      * @return head commit of @param branchName
      */
     public Commit checkout(String branchName) {
-        return setHeadBranch(branch.get(branchName), branchName);
+        return setHeadBranch(branchName, branch.get(branchName));
     }
 
     public Commit resetHead(String commitId) {
-        return setHeadBranch(commitId, headBranch);
+        return setHeadBranch(headBranch, commitId);
     }
 
-    private Commit setHeadBranch(String commitId, String branchName) {
+    private Commit setHeadBranch(String branchName, String commitId) {
         headHash = commitId;
-        headBranch = branch.get(branchName);
+        headBranch = branchName;
         return getHead();
     }
 
-    public void checkoutSafeHelper(String branchName, Map<String, String> untrackedMap) {
+    public void mergeCheckoutBranchSafe(String branchName, Map<String, String> untrackedMap,
+                                   String notExistPrompt, String sameWithHeadPrompt) {
         String hash = branch.get(branchName);
         if (hash == null) {
-            System.out.println("No such branch exists.");
+            System.out.println(notExistPrompt);
             System.exit(0);
         } else if (branchName.equals(headBranch)) {
-            System.out.println("No need to checkout the current branch.");
+            System.out.println(sameWithHeadPrompt);
             System.exit(0);
         } else if (!untrackedMap.isEmpty()) {
             Commit branchHead = commits.get(hash);
@@ -253,9 +272,8 @@ public class Commits implements Serializable {
     }
 
     /**
-     * maintaining a bidirectional map <branchName, CommitHashPointsTo>
+     * maintaining a map <branchName, CommitHashPointsTo>
      * manage branches and the commit it points to.
-     * !!!!FAILED!!!! can't make two branches points to one commit
      */
     private class Branch implements Serializable {
         private Map<String, String> nameHash;
